@@ -1,6 +1,6 @@
 from __future__ import annotations
+
 import numpy as np
-from numpy.linalg import inv, det, slogdet
 
 
 class UnivariateGaussian:
@@ -81,7 +81,7 @@ class UnivariateGaussian:
         """
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `pdf` function")
-        raise NotImplementedError()
+        return np.exp(-(X - self.mu_) ** 2 / (2 * self.var_)) / np.sqrt(2 * np.pi * self.var_)
 
     @staticmethod
     def log_likelihood(mu: float, sigma: float, X: np.ndarray) -> float:
@@ -102,7 +102,7 @@ class UnivariateGaussian:
         log_likelihood: float
             log-likelihood calculated
         """
-        raise NotImplementedError()
+        return -len(X) / 2 * np.log(2 * np.pi * sigma ** 2) - 0.5 * np.sum((X - mu) ** 2) / (sigma ** 2)
 
 
 class MultivariateGaussian:
