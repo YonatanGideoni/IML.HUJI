@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.io as pio
 from matplotlib import pyplot as plt
 
-from IMLearn.learners import UnivariateGaussian
+from IMLearn.learners import UnivariateGaussian, MultivariateGaussian
 
 pio.templates.default = "simple_white"
 
@@ -67,19 +67,30 @@ def test_univariate_gaussian():
 
 
 def test_multivariate_gaussian():
+    mean = np.array([0, 0, 4, 0])
+    cov_mat = np.array([[1, 0.2, 0, 0.5],
+                        [0.2, 2, 0, 0],
+                        [0, 0, 1, 0],
+                        [0.5, 0, 0, 1]])
+
     # Question 4 - Draw samples and print fitted model
-    raise NotImplementedError()
+    n_samples = 1000
+    rand_samples = np.random.multivariate_normal(mean, cov_mat, n_samples)
+    gaussian = MultivariateGaussian().fit(rand_samples)
+
+    print(gaussian.mu_)
+    print(gaussian.cov_)
 
     # Question 5 - Likelihood evaluation
-    raise NotImplementedError()
+    # raise NotImplementedError()
 
     # Question 6 - Maximum likelihood
-    raise NotImplementedError()
+    # raise NotImplementedError()
 
 
 if __name__ == '__main__':
     np.random.seed(0)
     test_univariate_gaussian()
-    # test_multivariate_gaussian()
+    test_multivariate_gaussian()
 
     plt.show()
