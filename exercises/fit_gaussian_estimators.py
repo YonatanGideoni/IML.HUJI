@@ -8,7 +8,8 @@ from IMLearn.learners import UnivariateGaussian
 pio.templates.default = "simple_white"
 
 
-def set_graph_attr(title='', xlabel='', ylabel='', label_size=14, title_size=16, ticks_size=11, ylim=0, grid=True):
+def set_graph_attr(title='', xlabel='', ylabel='', label_size=14, title_size=16, ticks_size=11, ylim: float = 0,
+                   grid: bool = True):
     if grid:
         plt.grid(zorder=-np.inf)
 
@@ -60,13 +61,9 @@ def test_univariate_gaussian():
 
     plt.plot(pdf_x, pdf_vals, label='Fitted model', c='b', linestyle='--')
 
-    real_gaussian_vals = np.exp(-(pdf_x - mean) ** 2 / (2 * var)) / np.sqrt(2 * np.pi * var)
-    plt.plot(pdf_x, real_gaussian_vals, label='Empirical model', c='r', zorder=-1)
+    plt.scatter(rand_samples, [0] * len(rand_samples), label='Data points', c='r', zorder=np.inf, alpha=0.2)
 
-    set_graph_attr(xlabel='x', ylabel='PDF(x)', title='Empirical and fitted gaussian comparison')
-
-    # TODO - finish this once it's better understood. Still need to plot the real model
-    # raise NotImplementedError()
+    set_graph_attr(xlabel='x', ylabel='PDF(x)', title='Fitted gaussian and sample density comparison', ylim=-0.005)
 
 
 def test_multivariate_gaussian():
