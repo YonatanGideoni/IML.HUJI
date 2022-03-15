@@ -1,3 +1,5 @@
+from typing import Union
+
 import numpy as np
 import pandas as pd
 import plotly.io as pio
@@ -8,8 +10,30 @@ from IMLearn.learners import UnivariateGaussian, MultivariateGaussian
 pio.templates.default = "simple_white"
 
 
-def set_graph_attr(title='', xlabel='', ylabel='', label_size=14, title_size=16, ticks_size=11, ylim: float = 0,
-                   grid: bool = True):
+def set_graph_attr(title='', xlabel='', ylabel='', label_size=14, title_size=16, ticks_size=11,
+                   ylim: Union[None, float] = 0, grid: bool = True):
+    """
+    Sets several of a graphs attributes.
+
+    Parameters
+    ----------
+    title: str
+        The graph's title.
+    xlabel: str
+        The graph's x axis label.
+    ylabel: str
+        The graph's y axis label.
+    label_size: int
+        The x/y axes label sizes.
+    title_size: int
+        The title's size.
+    ticks_size: int
+        The x/y ticks sizes.
+    ylim: float
+        Bottom limit of the y axis.
+    grid: bool
+        Whether or not to have a grid.
+    """
     if grid:
         plt.grid(zorder=-np.inf)
 
