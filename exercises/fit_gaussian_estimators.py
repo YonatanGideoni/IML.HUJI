@@ -92,11 +92,20 @@ def test_multivariate_gaussian():
                        for f1 in f1_vals] for f3 in f3_vals]
 
     plt.figure('Q5')
-    plt.imshow(log_likelihood, extent=[-delta_vals, delta_vals, -delta_vals, delta_vals])
-    plt.colorbar()
+    plt.imshow(np.transpose(log_likelihood), extent=[-delta_vals, delta_vals, -delta_vals, delta_vals])
+    plt.colorbar()  # TODO - add label to colourbar
+    set_graph_attr(grid=False, title='Log-likelihood heatmap for different values of $f_1,f_3$', xlabel='$f_3$',
+                   ylabel='$f_1$', ylim=None)
 
     # Question 6 - Maximum likelihood
-    # raise NotImplementedError()
+    max_likelihood_ind = np.argmax(log_likelihood)
+    f1_ind = max_likelihood_ind % n_test_vals
+    f3_ind = max_likelihood_ind // n_test_vals
+
+    likely_f1 = f1_vals[f1_ind]
+    likely_f3 = f3_vals[f3_ind]
+
+    print(f'{likely_f1:.3f}, {likely_f3:.3f}')
 
 
 if __name__ == '__main__':
