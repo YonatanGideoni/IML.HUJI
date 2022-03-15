@@ -82,7 +82,18 @@ def test_multivariate_gaussian():
     print(gaussian.cov_)
 
     # Question 5 - Likelihood evaluation
-    # raise NotImplementedError()
+    n_test_vals = 200
+    delta_vals = 10
+    f1_vals = np.linspace(-delta_vals, delta_vals, n_test_vals)
+    f3_vals = f1_vals.copy()
+
+    gaussian.pdf(rand_samples)
+    log_likelihood = [[gaussian.log_likelihood(np.array([f1, 0, f3, 0]), cov_mat, rand_samples)
+                       for f1 in f1_vals] for f3 in f3_vals]
+
+    plt.figure('Q5')
+    plt.imshow(log_likelihood, extent=[-delta_vals, delta_vals, -delta_vals, delta_vals])
+    plt.colorbar()
 
     # Question 6 - Maximum likelihood
     # raise NotImplementedError()
