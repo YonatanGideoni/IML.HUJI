@@ -209,4 +209,4 @@ class MultivariateGaussian:
             log-likelihood calculated over all input data and under given parameters of Gaussian
         """
 
-        return calc_cov_sum(mu, cov, X)
+        return -calc_cov_sum(mu, cov, X).sum()
