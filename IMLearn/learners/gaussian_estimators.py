@@ -6,6 +6,23 @@ import numpy as np
 
 
 def calc_cov_sum(mu: np.ndarray, cov: np.ndarray, X: np.ndarray) -> Union[float, np.ndarray]:
+    """
+    Calculate (X-mu)^T \Sigma^{-1} (X-mu) efficiently.
+
+    Parameters
+    ----------
+    mu: np.ndarray
+        Means vector.
+    cov: np.ndarray
+        Covariance matrix.
+    X: np.ndarray
+        Samples matrix for which to calculate the covariant sum.
+
+    Returns
+    -------
+        The result of the calculation. If X is a vector, returns a float. Otherwise, will return a vector
+        of the calculation's result for each column of X.
+    """
     dist_to_mean = X - mu[np.newaxis, :]
     return np.einsum('ij,jk,ik->i', dist_to_mean, np.linalg.inv(cov), dist_to_mean)
 
