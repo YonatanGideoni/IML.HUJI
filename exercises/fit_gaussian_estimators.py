@@ -93,7 +93,8 @@ def test_multivariate_gaussian():
 
     plt.figure('Q5')
     plt.imshow(np.transpose(log_likelihood), extent=[-delta_vals, delta_vals, -delta_vals, delta_vals])
-    plt.colorbar()  # TODO - add label to colourbar
+    cbar = plt.colorbar()
+    cbar.set_label('Log-likelihood', fontsize=13)
     set_graph_attr(grid=False, title='Log-likelihood heatmap for different values of $f_1,f_3$', xlabel='$f_3$',
                    ylabel='$f_1$', ylim=None)
 
