@@ -1,6 +1,13 @@
 from __future__ import annotations
 
+from typing import Union
+
 import numpy as np
+
+
+def calc_cov_sum(mu: np.ndarray, cov: np.ndarray, X: np.ndarray) -> Union[float, np.ndarray]:
+    dist_to_mean = X - mu[np.newaxis, :]
+    return np.einsum('ij,jk,ik->i', dist_to_mean, np.linalg.inv(cov), dist_to_mean)
 
 
 class UnivariateGaussian:
@@ -176,10 +183,9 @@ class MultivariateGaussian:
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `pdf` function")
         n_features = len(self.mu_)
-        dist_to_mean = X - self.mu_[np.newaxis, :]
 
         normalization = ((2 * np.pi) ** n_features * np.linalg.det(self.cov_)) ** -0.5
-        cov_sum = np.einsum('ij,jk,ik->i', dist_to_mean, np.linalg.inv(self.cov_), dist_to_mean)
+        cov_sum = calc_cov_sum(self.mu_, self.cov_, X)
 
         return normalization * np.exp(-0.5 * cov_sum)
 
@@ -202,4 +208,5 @@ class MultivariateGaussian:
         log_likelihood: float
             log-likelihood calculated over all input data and under given parameters of Gaussian
         """
-        raise NotImplementedError()
+
+        return calc_cov_sum(mu, cov, X)
