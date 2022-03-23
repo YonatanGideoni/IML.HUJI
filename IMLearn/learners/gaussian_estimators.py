@@ -5,7 +5,7 @@ from typing import Union
 import numpy as np
 
 
-def calc_cov_sum(mu: np.ndarray, cov: np.ndarray, X: np.ndarray) -> Union[float, np.ndarray]:
+def _calc_cov_sum(mu: np.ndarray, cov: np.ndarray, X: np.ndarray) -> Union[float, np.ndarray]:
     """
     Calculate (X-mu)^T \Sigma^{-1} (X-mu) efficiently.
 
@@ -202,7 +202,7 @@ class MultivariateGaussian:
         n_features = len(self.mu_)
 
         normalization = ((2 * np.pi) ** n_features * np.linalg.det(self.cov_)) ** -0.5
-        cov_sum = calc_cov_sum(self.mu_, self.cov_, X)
+        cov_sum = _calc_cov_sum(self.mu_, self.cov_, X)
 
         return normalization * np.exp(-0.5 * cov_sum)
 
@@ -226,4 +226,4 @@ class MultivariateGaussian:
             log-likelihood calculated over all input data and under given parameters of Gaussian
         """
 
-        return -calc_cov_sum(mu, cov, X).sum()
+        return -_calc_cov_sum(mu, cov, X).sum()
