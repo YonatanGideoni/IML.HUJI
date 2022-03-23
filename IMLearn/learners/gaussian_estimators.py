@@ -108,7 +108,7 @@ class UnivariateGaussian:
         return np.exp(-(X - self.mu_) ** 2 / (2 * self.var_)) / np.sqrt(2 * np.pi * self.var_)
 
     @staticmethod
-    def log_likelihood(mu: float, sigma: float, X: np.ndarray) -> float:
+    def log_likelihood(mu: float, var: float, X: np.ndarray) -> float:
         """
         Calculate the log-likelihood of the data under a specified Gaussian model
 
@@ -116,7 +116,7 @@ class UnivariateGaussian:
         ----------
         mu : float
             Expectation of Gaussian
-        sigma : float
+        var : float
             Variance of Gaussian
         X : ndarray of shape (n_samples, )
             Samples to calculate log-likelihood with
@@ -126,7 +126,7 @@ class UnivariateGaussian:
         log_likelihood: float
             log-likelihood calculated
         """
-        return -np.sum((X - mu) ** 2) / (sigma ** 2)
+        return -np.sum((X - mu) ** 2) / var
 
 
 class MultivariateGaussian:
