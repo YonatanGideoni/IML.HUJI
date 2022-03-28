@@ -84,6 +84,14 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
         plt.savefig(os.path.join(output_path, col.replace('.', '_')))
 
 
+def fit_linear_regression(data: pd.DataFrame, response: pd.Series) -> np.ndarray:
+    design_matrix = data.values
+
+    pseudo_inv = np.linalg.pinv(design_matrix)
+
+    return pseudo_inv @ response.values
+
+
 if __name__ == '__main__':
     np.random.seed(0)
     # Question 1 - Load and preprocessing of housing prices dataset
