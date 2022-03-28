@@ -6,6 +6,8 @@ import pandas as pd
 import plotly.io as pio
 from matplotlib import pyplot as plt
 
+from IMLearn.utils import split_train_test
+
 pio.templates.default = "simple_white"
 
 
@@ -16,7 +18,7 @@ def __drop_invalid_values(houses_data: pd.DataFrame) -> pd.DataFrame:
             continue
         houses_data = houses_data[houses_data[col] > 0]
 
-    return houses_data
+    return houses_data.dropna()
 
 
 def load_data(filename: str) -> pd.DataFrame:
@@ -70,15 +72,16 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
         Path to folder in which plots are saved
     """
     y_std = np.std(y)
+    ZORDER = 10
     for col in X.columns:
-        if col == y.name:
+        if col == y.name or 'day' in col:
             continue
 
         corr_coeff = np.cov(X[col], y)[0, 1] / (y_std * np.std(X[col]))
         X.plot.scatter(x=col, y=y.name, grid=True,
-                       title=f'{col} vs house prices, correlation coefficient={corr_coeff:.2f}', zorder=10)
+                       title=f'{col} vs house prices, correlation coefficient={corr_coeff:.2f}', zorder=ZORDER)
 
-        plt.savefig(os.path.join(output_path, col))
+        plt.savefig(os.path.join(output_path, col.replace('.', '_')))
 
 
 if __name__ == '__main__':
@@ -88,10 +91,9 @@ if __name__ == '__main__':
 
     # Question 2 - Feature evaluation with respect to response
     feature_evaluation(data, data.price)
-    plt.show()
 
     # Question 3 - Split samples into training- and testing sets.
-    raise NotImplementedError()
+    train_data, _, test_data, _ = split_train_test(data, data.price)
 
     # Question 4 - Fit model over increasing percentages of the overall training data
     # For every percentage p in 10%, 11%, ..., 100%, repeat the following 10 times:
@@ -101,3 +103,5 @@ if __name__ == '__main__':
     #   4) Store average and variance of loss over test set
     # Then plot average loss as function of training size with error ribbon of size (mean-2*std, mean+2*std)
     raise NotImplementedError()
+
+    plt.show()
