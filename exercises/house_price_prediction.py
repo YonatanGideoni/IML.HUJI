@@ -1,8 +1,10 @@
+import os
 from typing import NoReturn
 
 import numpy as np
 import pandas as pd
 import plotly.io as pio
+from matplotlib import pyplot as plt
 
 pio.templates.default = "simple_white"
 
@@ -35,7 +37,7 @@ def load_data(filename: str) -> pd.DataFrame:
     data = __drop_invalid_values(data)
 
     # one-hot encoding
-    CAT_VARS = ['zipcode', 'grade', 'waterfront', 'view']
+    CAT_VARS = ['zipcode', 'grade', 'waterfront', 'view', 'condition']
     data = pd.get_dummies(data, columns=CAT_VARS)
 
     # get relevant month from date
@@ -67,7 +69,16 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
     output_path: str (default ".")
         Path to folder in which plots are saved
     """
-    raise NotImplementedError()
+    y_std = np.std(y)
+    for col in X.columns:
+        if col == y.name:
+            continue
+
+        corr_coeff = np.cov(X[col], y)[0, 1] / (y_std * np.std(X[col]))
+        X.plot.scatter(x=col, y=y.name, grid=True,
+                       title=f'{col} vs house prices, correlation coefficient={corr_coeff:.2f}', zorder=10)
+
+        plt.savefig(os.path.join(output_path, col))
 
 
 if __name__ == '__main__':
@@ -76,7 +87,8 @@ if __name__ == '__main__':
     data = load_data('../datasets/house_prices.csv')
 
     # Question 2 - Feature evaluation with respect to response
-    raise NotImplementedError()
+    feature_evaluation(data, data.price)
+    plt.show()
 
     # Question 3 - Split samples into training- and testing sets.
     raise NotImplementedError()
