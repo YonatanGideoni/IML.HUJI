@@ -1,16 +1,23 @@
-from IMLearn.utils import split_train_test
-from IMLearn.learners.regressors import LinearRegression
-
 from typing import NoReturn
+
 import numpy as np
 import pandas as pd
-import plotly.graph_objects as go
-import plotly.express as px
 import plotly.io as pio
+
 pio.templates.default = "simple_white"
 
 
-def load_data(filename: str):
+def __drop_invalid_values(houses_data: pd.DataFrame) -> pd.DataFrame:
+    NONPOS_COLS = {'lat', 'long', 'yr_renovated', 'view', 'waterfront', 'bathrooms', 'bedrooms', 'sqft_basement'}
+    for col in set(houses_data.columns) - NONPOS_COLS:
+        if not pd.api.types.is_numeric_dtype(houses_data[col].dtype):
+            continue
+        houses_data = houses_data[houses_data[col] > 0]
+
+    return houses_data
+
+
+def load_data(filename: str) -> pd.DataFrame:
     """
     Load house prices dataset and preprocess data.
     Parameters
@@ -23,7 +30,24 @@ def load_data(filename: str):
     Design matrix and response vector (prices) - either as a single
     DataFrame or a Tuple[DataFrame, Series]
     """
-    raise NotImplementedError()
+    data = pd.read_csv(filename)
+
+    data = __drop_invalid_values(data)
+
+    # one-hot encoding
+    CAT_VARS = ['zipcode', 'grade', 'waterfront', 'view']
+    data = pd.get_dummies(data, columns=CAT_VARS)
+
+    # get relevant month from date
+    dates = data.date.astype('datetime64')
+    min_date = dates.min()
+    data['days_from_beginning'] = (dates - min_date).apply(lambda timerange: timerange.days)
+
+    # add relative lot/living space sizes columns
+    data['rel_lot_size'] = data.sqft_lot / data.sqft_lot15
+    data['rel_living_size'] = data.sqft_living / data.sqft_living15
+
+    return data.drop(['id', 'date'], axis='columns')
 
 
 def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") -> NoReturn:
@@ -49,7 +73,7 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
 if __name__ == '__main__':
     np.random.seed(0)
     # Question 1 - Load and preprocessing of housing prices dataset
-    raise NotImplementedError()
+    data = load_data('../datasets/house_prices.csv')
 
     # Question 2 - Feature evaluation with respect to response
     raise NotImplementedError()
