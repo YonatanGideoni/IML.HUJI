@@ -38,20 +38,20 @@ def load_data(filename: str) -> pd.DataFrame:
 
     data = __drop_invalid_values(data)
 
-    # one-hot encoding
+    # categorical distribution encoding
     CAT_VARS = ['zipcode', 'grade', 'waterfront', 'view', 'condition']
-    data = pd.get_dummies(data, columns=CAT_VARS)
+    for cat_var in CAT_VARS:
+        cat_to_avg_price = data.groupby(cat_var).price.mean().to_dict()
+        data[cat_var] = data[cat_var].apply(cat_to_avg_price.get)
 
-    # get relevant month from date
-    dates = data.date.astype('datetime64')
-    min_date = dates.min()
-    data['days_from_beginning'] = (dates - min_date).apply(lambda timerange: timerange.days)
+    # make yr_renovated be an indicator
+    data['renovated'] = (data.yr_renovated > 0).astype(int)
 
     # add relative lot/living space sizes columns
     data['rel_lot_size'] = data.sqft_lot / data.sqft_lot15
     data['rel_living_size'] = data.sqft_living / data.sqft_living15
 
-    return data.drop(['id', 'date'], axis='columns')
+    return data.drop(['id', 'date', 'yr_renovated'], axis='columns')
 
 
 def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") -> NoReturn:
@@ -74,7 +74,7 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
     y_std = np.std(y)
     ZORDER = 10
     for col in X.columns:
-        if col == y.name or 'day' in col:
+        if col == y.name:
             continue
 
         corr_coeff = np.cov(X[col], y)[0, 1] / (y_std * np.std(X[col]))
@@ -85,11 +85,16 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
 
 
 def fit_linear_regression(data: pd.DataFrame, response: pd.Series) -> np.ndarray:
-    design_matrix = data.values
+    design_matrix = get_design_mat(data)
 
     pseudo_inv = np.linalg.pinv(design_matrix)
 
     return pseudo_inv @ response.values
+
+
+def get_design_mat(data: pd.DataFrame) -> np.ndarray:
+    data['dummy'] = 1  # needed for intercept
+    return data.values
 
 
 if __name__ == '__main__':
@@ -98,7 +103,7 @@ if __name__ == '__main__':
     data = load_data('../datasets/house_prices.csv')
 
     # Question 2 - Feature evaluation with respect to response
-    feature_evaluation(data, data.price)
+    # feature_evaluation(data, data.price)
 
     # Question 3 - Split samples into training- and testing sets.
     train_data, _, test_data, _ = split_train_test(data, data.price)
@@ -110,6 +115,23 @@ if __name__ == '__main__':
     #   3) Test fitted model over test set
     #   4) Store average and variance of loss over test set
     # Then plot average loss as function of training size with error ribbon of size (mean-2*std, mean+2*std)
-    raise NotImplementedError()
+    # TODO - throw all this into a function+repeat sampling, fitting, and evaluating 10 times for each value of p
+    df = []
+    for perc in np.arange(0.1, 1, 0.01):
+        partial_tr_data = train_data.sample(frac=perc)
+        res_weights = fit_linear_regression(partial_tr_data.drop('price', axis='columns'), partial_tr_data.price)
+
+        predicted_price = get_design_mat(test_data.drop('price', axis='columns')) @ res_weights
+        error = test_data.price - predicted_price
+        loss = error ** 2
+
+        df.append({'percent': perc,
+                   'avg_loss': np.mean(loss),
+                   'std_loss': np.std(loss)})
+
+    df = pd.DataFrame.from_records(df)
+
+    df.plot(x='percent', y='avg_loss')
+    plt.fill_between(df.percent, df.avg_loss - 2 * df.std_loss, df.avg_loss + 2 * df.std_loss, alpha=0.4)
 
     plt.show()
