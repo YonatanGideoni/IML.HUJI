@@ -31,6 +31,10 @@ def load_data(filename: str) -> pd.DataFrame:
     return data
 
 
+def get_avg_temp_per_month(data: pd.DataFrame) -> pd.DataFrame:
+    return data.groupby('Month').Temp.agg(['mean', 'std']).reset_index()
+
+
 def plot_temp_per_year_day(data: pd.DataFrame, country='Israel'):
     country_data = data[data.Country == country]
 
@@ -47,12 +51,26 @@ def plot_temp_per_year_day(data: pd.DataFrame, country='Israel'):
     MAX_DAY_OF_YEAR = 366
     plt.xlim(0, MAX_DAY_OF_YEAR)
 
-    country_data.groupby('Month').Temp.agg(['mean', 'std']).reset_index().plot.bar(x='Month', y='mean', yerr='std')
+    get_avg_temp_per_month(country_data).plot.bar(x='Month', y='mean', yerr='std')
 
     plt.ylabel('Temperature', fontsize=14)
     plt.xlabel('Month', fontsize=14)
     plt.title('Average temperature at each month', fontsize=16)
     plt.gca().get_legend().remove()
+
+
+def plot_countries_avg_temp(data: pd.DataFrame):
+    colours = list('rgbm')
+    plt.figure()
+    data.groupby('Country') \
+        .apply(lambda country_df: get_avg_temp_per_month(country_df)
+               .plot(x='Month', y='mean', yerr='std', c=colours.pop(), label=country_df.name, ax=plt.gca(),
+                     marker='o', grid=True))
+
+    plt.title('Monthly temperature over time for different countries', fontsize=16)
+    plt.xlabel('Month', fontsize=14)
+    plt.ylabel('Temperature[C]', fontsize=14)
+    plt.legend(fontsize=12)
 
 
 if __name__ == '__main__':
@@ -64,7 +82,7 @@ if __name__ == '__main__':
     plot_temp_per_year_day(data)
 
     # Question 3 - Exploring differences between countries
-    # raise NotImplementedError()
+    plot_countries_avg_temp(data)
 
     # Question 4 - Fitting model for different values of `k`
     # raise NotImplementedError()
