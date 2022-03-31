@@ -52,6 +52,10 @@ def load_data(filename: str) -> pd.DataFrame:
     data['rel_lot_size'] = data.sqft_lot / data.sqft_lot15
     data['rel_living_size'] = data.sqft_living / data.sqft_living15
 
+    # get time since house was built/renovated
+    data['time_since_renovated'] = data[['yr_renovated', 'yr_built']].max(axis='columns')
+    data.time_since_renovated = data.time_since_renovated.max() - data.time_since_renovated
+
     return data.drop(['id', 'date', 'yr_renovated'], axis='columns')
 
 
