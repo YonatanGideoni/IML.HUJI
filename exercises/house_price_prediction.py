@@ -6,6 +6,7 @@ import pandas as pd
 import plotly.io as pio
 from matplotlib import pyplot as plt
 
+from IMLearn.learners.regressors import LinearRegression
 from IMLearn.utils import split_train_test
 
 pio.templates.default = "simple_white"
@@ -84,17 +85,16 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
         plt.savefig(os.path.join(output_path, col.replace('.', '_')))
 
 
-def fit_linear_regression(data: pd.DataFrame, response: pd.Series) -> np.ndarray:
-    design_matrix = get_design_mat(data)
+def get_loss_for_perc_data(train_data: pd.DataFrame, test_data: pd.DataFrame, perc: float, n_iters: int = 10) -> list:
+    loss = []
+    test_data, test_price = test_data.drop('price', axis='columns'), test_data.price
+    for _ in range(n_iters):
+        partial_tr_data = train_data.sample(frac=perc)
 
-    pseudo_inv = np.linalg.pinv(design_matrix)
+        lin_regress = LinearRegression().fit(partial_tr_data.drop('price', axis='columns'), partial_tr_data.price)
+        loss.append(lin_regress.loss(test_data, test_price))
 
-    return pseudo_inv @ response.values
-
-
-def get_design_mat(data: pd.DataFrame) -> np.ndarray:
-    data['dummy'] = 1  # needed for intercept
-    return data.values
+    return loss
 
 
 if __name__ == '__main__':
@@ -118,12 +118,7 @@ if __name__ == '__main__':
     # TODO - throw all this into a function+repeat sampling, fitting, and evaluating 10 times for each value of p
     df = []
     for perc in np.arange(0.1, 1, 0.01):
-        partial_tr_data = train_data.sample(frac=perc)
-        res_weights = fit_linear_regression(partial_tr_data.drop('price', axis='columns'), partial_tr_data.price)
-
-        predicted_price = get_design_mat(test_data.drop('price', axis='columns')) @ res_weights
-        error = test_data.price - predicted_price
-        loss = error ** 2
+        loss = get_loss_for_perc_data(train_data, test_data, perc)
 
         df.append({'percent': perc,
                    'avg_loss': np.mean(loss),
