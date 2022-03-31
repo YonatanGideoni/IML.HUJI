@@ -117,7 +117,7 @@ if __name__ == '__main__':
     # Then plot average loss as function of training size with error ribbon of size (mean-2*std, mean+2*std)
     # TODO - throw all this into a function+repeat sampling, fitting, and evaluating 10 times for each value of p
     df = []
-    for perc in np.arange(0.1, 1, 0.01):
+    for perc in np.arange(0.1, 1.005, 0.01):
         loss = get_loss_for_perc_data(train_data, test_data, perc)
 
         df.append({'percent': perc,
