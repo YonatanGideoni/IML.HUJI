@@ -126,7 +126,13 @@ if __name__ == '__main__':
 
     df = pd.DataFrame.from_records(df)
 
-    df.plot(x='percent', y='avg_loss')
-    plt.fill_between(df.percent, df.avg_loss - 2 * df.std_loss, df.avg_loss + 2 * df.std_loss, alpha=0.4)
+    df.plot(x='percent', y='avg_loss', label='Average loss', grid=True, c='k')
+    plt.fill_between(df.percent, df.avg_loss - 2 * df.std_loss, df.avg_loss + 2 * df.std_loss, alpha=0.4,
+                     label='$2\sigma$ Confidence interval')
+
+    plt.xlabel('Percent of data taken', fontsize=14)
+    plt.ylabel('Loss', fontsize=14)
+    plt.title('Average loss vs percent of data taken', fontsize=16)
+    plt.legend(fontsize=13)
 
     plt.show()
