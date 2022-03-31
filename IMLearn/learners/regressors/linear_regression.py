@@ -1,8 +1,13 @@
 from __future__ import annotations
+
 from typing import NoReturn
-from ...base import BaseEstimator
+
 import numpy as np
+import pandas as pd
 from numpy.linalg import pinv
+
+from ...base import BaseEstimator
+from ...metrics import mean_square_error
 
 
 class LinearRegression(BaseEstimator):
@@ -33,31 +38,35 @@ class LinearRegression(BaseEstimator):
         super().__init__()
         self.include_intercept_, self.coefs_ = include_intercept, None
 
-    def _fit(self, X: np.ndarray, y: np.ndarray) -> NoReturn:
+    def _fit(self, X: pd.DataFrame, y: pd.Series) -> NoReturn:
         """
         Fit Least Squares model to given samples
 
         Parameters
         ----------
-        X : ndarray of shape (n_samples, n_features)
+        X : pd.DataFrame of shape (n_samples, n_features)
             Input data to fit an estimator for
 
-        y : ndarray of shape (n_samples, )
+        y : pd.Series of shape (n_samples, )
             Responses of input data to fit to
 
         Notes
         -----
         Fits model with or without an intercept depending on value of `self.include_intercept_`
         """
-        raise NotImplementedError()
+        design_matrix = self.__get_design_mat(X)
 
-    def _predict(self, X: np.ndarray) -> np.ndarray:
+        pseudo_inv = np.linalg.pinv(design_matrix)
+
+        self.coefs_ = pseudo_inv @ y.values
+
+    def _predict(self, X: pd.DataFrame) -> np.ndarray:
         """
         Predict responses for given samples using fitted estimator
 
         Parameters
         ----------
-        X : ndarray of shape (n_samples, n_features)
+        X : pd.DataFrame of shape (n_samples, n_features)
             Input data to predict responses for
 
         Returns
@@ -65,7 +74,7 @@ class LinearRegression(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        raise NotImplementedError()
+        return self.__get_design_mat(X) @ self.coefs_
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -84,4 +93,11 @@ class LinearRegression(BaseEstimator):
         loss : float
             Performance under MSE loss function
         """
-        raise NotImplementedError()
+        return mean_square_error(self.predict(X), y)
+
+    def __get_design_mat(self, X: pd.DataFrame) -> np.ndarray:
+        X = X.copy()
+        if self.include_intercept_:
+            X['dummy_intercept_col'] = 1
+
+        return X.values
