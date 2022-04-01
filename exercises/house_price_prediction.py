@@ -107,7 +107,7 @@ if __name__ == '__main__':
     data = load_data('../datasets/house_prices.csv')
 
     # Question 2 - Feature evaluation with respect to response
-    # feature_evaluation(data, data.price)
+    feature_evaluation(data, data.price)
 
     # Question 3 - Split samples into training- and testing sets.
     train_data, _, test_data, _ = split_train_test(data, data.price)
@@ -119,7 +119,6 @@ if __name__ == '__main__':
     #   3) Test fitted model over test set
     #   4) Store average and variance of loss over test set
     # Then plot average loss as function of training size with error ribbon of size (mean-2*std, mean+2*std)
-    # TODO - throw all this into a function+repeat sampling, fitting, and evaluating 10 times for each value of p
     df = []
     for perc in np.arange(0.1, 1.005, 0.01):
         loss = get_loss_for_perc_data(train_data, test_data, perc)
