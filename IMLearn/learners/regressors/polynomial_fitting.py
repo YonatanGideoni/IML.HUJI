@@ -22,7 +22,7 @@ class PolynomialFitting(LinearRegression):
             Degree of polynomial to fit
         """
         super().__init__(include_intercept=False)
-        self.deg = k
+        self.deg = k + 1
 
     def _fit(self, X: np.ndarray, y: np.ndarray) -> NoReturn:
         """
