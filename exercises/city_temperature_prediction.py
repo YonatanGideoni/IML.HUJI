@@ -5,6 +5,9 @@ import pandas as pd
 import plotly.io as pio
 from matplotlib import pyplot as plt
 
+from IMLearn.learners.regressors import PolynomialFitting
+from IMLearn.utils import split_train_test
+
 pio.templates.default = "simple_white"
 
 
@@ -47,7 +50,7 @@ def plot_temp_per_year_day(data: pd.DataFrame, country='Israel'):
     plt.legend(fontsize=12, ncol=5)
     plt.xlabel('Day of year', fontsize=14)
     plt.ylabel('Temperature[C]', fontsize=14)
-    plt.title('Temperature vs. day of year for different years', fontsize=16)
+    plt.title(f'{country} temperature vs. day of year for different years', fontsize=16)
     MAX_DAY_OF_YEAR = 366
     plt.xlim(0, MAX_DAY_OF_YEAR)
 
@@ -55,7 +58,7 @@ def plot_temp_per_year_day(data: pd.DataFrame, country='Israel'):
 
     plt.ylabel('Temperature', fontsize=14)
     plt.xlabel('Month', fontsize=14)
-    plt.title('Average temperature at each month', fontsize=16)
+    plt.title(f'Average {country} temperature at each month', fontsize=16)
     plt.gca().get_legend().remove()
 
 
@@ -73,6 +76,28 @@ def plot_countries_avg_temp(data: pd.DataFrame):
     plt.legend(fontsize=12)
 
 
+def fit_polynomials_to_model(data: pd.DataFrame, country='Israel', max_deg=10):
+    country_data = data[data.Country == 'Israel']
+    train_data, train_resp, test_data, test_resp = split_train_test(country_data.DayOfYear, country_data.Temp)
+    res_loss = []
+    for k in range(1, max_deg + 1):
+        poly_fit = PolynomialFitting(k).fit(train_data, train_resp)
+
+        loss = poly_fit.loss(test_data, test_resp)
+
+        res_loss.append({'degree': k, 'loss': loss})
+
+    res_loss = pd.DataFrame.from_records(res_loss)
+    print(res_loss)
+
+    res_loss.plot.bar(x='degree', y='loss', grid=True, fontsize=12, zorder=np.inf)
+    plt.gca().get_legend().remove()
+
+    plt.title(f'MSE vs degree of {country} temperature prediction polynomial', fontsize=16)
+    plt.xlabel('Degree', fontsize=14)
+    plt.ylabel('MSE', fontsize=14)
+
+
 if __name__ == '__main__':
     np.random.seed(0)
     # Question 1 - Load and preprocessing of city temperature dataset
@@ -85,7 +110,7 @@ if __name__ == '__main__':
     plot_countries_avg_temp(data)
 
     # Question 4 - Fitting model for different values of `k`
-    # raise NotImplementedError()
+    fit_polynomials_to_model(data)
 
     # Question 5 - Evaluating fitted model on different countries
     # raise NotImplementedError()

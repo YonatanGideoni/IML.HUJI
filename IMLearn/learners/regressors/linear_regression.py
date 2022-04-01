@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import NoReturn
+from typing import NoReturn, Union
 
 import numpy as np
 import pandas as pd
@@ -95,9 +95,9 @@ class LinearRegression(BaseEstimator):
         """
         return mean_square_error(self.predict(X), y)
 
-    def __get_design_mat(self, X: pd.DataFrame) -> np.ndarray:
+    def __get_design_mat(self, X: Union[pd.DataFrame, np.ndarray]) -> np.ndarray:
         X = X.copy()
         if self.include_intercept_:
             X['dummy_intercept_col'] = 1
 
-        return X.values
+        return X.values if isinstance(X, pd.DataFrame) else X
