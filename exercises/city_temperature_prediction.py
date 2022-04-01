@@ -85,7 +85,7 @@ def fit_polynomials_to_model(data: pd.DataFrame, country='Israel', max_deg=10):
 
         loss = poly_fit.loss(test_data, test_resp)
 
-        res_loss.append({'degree': k, 'loss': loss})
+        res_loss.append({'degree': k, 'loss': round(loss, 2)})
 
     res_loss = pd.DataFrame.from_records(res_loss)
     print(res_loss)
@@ -95,6 +95,22 @@ def fit_polynomials_to_model(data: pd.DataFrame, country='Israel', max_deg=10):
 
     plt.title(f'MSE vs degree of {country} temperature prediction polynomial', fontsize=16)
     plt.xlabel('Degree', fontsize=14)
+    plt.ylabel('MSE', fontsize=14)
+
+
+def compare_country_poly_to_others(data: pd.DataFrame, country='Israel', degree=5):
+    country_data = data[data.Country == country]
+
+    country_poly = PolynomialFitting(degree).fit(country_data.DayOfYear, country_data.Temp)
+
+    other_countries_loss = data[data.Country != country].groupby('Country') \
+        .apply(lambda df: country_poly.loss(df.DayOfYear, df.Temp)).reset_index()
+
+    other_countries_loss.plot.bar(x='Country', y=0, fontsize=12, rot=0)
+    plt.gca().get_legend().remove()
+
+    plt.title(f'MSE vs loss of country temperature prediction using {country} polynomial', fontsize=16)
+    plt.xlabel('Country', fontsize=14)
     plt.ylabel('MSE', fontsize=14)
 
 
@@ -113,6 +129,6 @@ if __name__ == '__main__':
     fit_polynomials_to_model(data)
 
     # Question 5 - Evaluating fitted model on different countries
-    # raise NotImplementedError()
+    compare_country_poly_to_others(data)
 
     plt.show()
