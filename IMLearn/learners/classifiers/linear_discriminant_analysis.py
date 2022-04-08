@@ -1,7 +1,9 @@
 from typing import NoReturn
-from ...base import BaseEstimator
+
 import numpy as np
-from numpy.linalg import det, inv
+import pandas as pd
+
+from ...base import BaseEstimator
 
 
 class LDA(BaseEstimator):
@@ -25,6 +27,7 @@ class LDA(BaseEstimator):
     self.pi_: np.ndarray of shape (n_classes)
         The estimated class probabilities. To be set in `GaussianNaiveBayes.fit`
     """
+
     def __init__(self):
         """
         Instantiate an LDA classifier
@@ -46,7 +49,12 @@ class LDA(BaseEstimator):
         y : ndarray of shape (n_samples, )
             Responses of input data to fit to
         """
-        raise NotImplementedError()
+        self.classes_ = np.unique(y)
+
+        self.pi_ = pd.Series(y).value_counts()[self.classes_].values
+        self.mu_ = pd.DataFrame(X).groupby(y).mean().loc[self.classes_].values
+
+        self.cov = np.cov(X)
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -101,5 +109,4 @@ class LDA(BaseEstimator):
         loss : float
             Performance under missclassification loss function
         """
-        from ...metrics import misclassification_error
         raise NotImplementedError()
