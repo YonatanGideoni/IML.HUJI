@@ -1,9 +1,10 @@
-from IMLearn.learners.classifiers import Perceptron, LDA, GaussianNaiveBayes
-from typing import Tuple
-from utils import *
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 from math import atan2, pi
+from typing import Tuple
+
+import plotly.graph_objects as go
+
+from IMLearn.learners.classifiers import GaussianNaiveBayes
+from utils import *
 
 
 def load_dataset(filename: str) -> Tuple[np.ndarray, np.ndarray]:
@@ -36,9 +37,12 @@ def run_perceptron():
     Create a line plot that shows the perceptron algorithm's training loss values (y-axis)
     as a function of the training iterations (x-axis).
     """
-    for n, f in [("Linearly Separable", "linearly_separable.npy"), ("Linearly Inseparable", "linearly_inseparable.npy")]:
+    for n, f in [("Linearly Separable", "linearly_separable.npy"),
+                 ("Linearly Inseparable", "linearly_inseparable.npy")]:
         # Load dataset
-        raise NotImplementedError()
+        data, response = load_dataset('../datasets/gaussian1.npy')
+
+        gaussian_n_bayes = GaussianNaiveBayes().fit(data, response)
 
         # Fit Perceptron and record loss in each fit iteration
         losses = []
@@ -87,7 +91,6 @@ def compare_gaussian_classifiers():
         # Plot a figure with two suplots, showing the Gaussian Naive Bayes predictions on the left and LDA predictions
         # on the right. Plot title should specify dataset used and subplot titles should specify algorithm and accuracy
         # Create subplots
-        from IMLearn.metrics import accuracy
         raise NotImplementedError()
 
         # Add traces for data-points setting symbols and colors
