@@ -49,7 +49,7 @@ class GaussianNaiveBayes(BaseEstimator):
 
         self.pi_ = pd.Series(y).value_counts()[self.classes_].values
         self.mu_ = pd.DataFrame(X).groupby(y).mean().loc[self.classes_].values
-        self.vars_ = pd.DataFrame(X).groupby(y).var().loc[self.classes_].values
+        self.vars_ = pd.DataFrame(X).groupby(y).var(ddof=0).loc[self.classes_].values
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """

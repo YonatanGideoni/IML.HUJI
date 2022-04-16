@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 
 from ...base import BaseEstimator
+from ...metrics import misclassification_error
 
 
 class LDA(BaseEstimator):
@@ -54,7 +55,7 @@ class LDA(BaseEstimator):
         self.pi_ = pd.Series(y).value_counts()[self.classes_].values
         self.mu_ = pd.DataFrame(X).groupby(y).mean().loc[self.classes_].values
 
-        self.cov = np.cov(X)
+        self.cov = np.cov(X - self.mu_[y], bias=True, rowvar=False)
         self._cov_inv = np.linalg.inv(self.cov)
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
@@ -71,7 +72,8 @@ class LDA(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        raise NotImplementedError()
+        posterior_likelihood = self.likelihood(X) * self.pi_
+        return self.classes_[posterior_likelihood.argmax(axis=1)]
 
     def likelihood(self, X: np.ndarray) -> np.ndarray:
         """
@@ -91,7 +93,10 @@ class LDA(BaseEstimator):
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `likelihood` function")
 
-        raise NotImplementedError()
+        dist_to_mean = X[:, np.newaxis] - self.mu_
+        class_exp_arg = np.einsum('ilj,jk,ilk->il', dist_to_mean, self._cov_inv, dist_to_mean)
+
+        return np.exp(-0.5 * class_exp_arg)
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -110,4 +115,4 @@ class LDA(BaseEstimator):
         loss : float
             Performance under missclassification loss function
         """
-        raise NotImplementedError()
+        return misclassification_error(self.predict(X), y)
