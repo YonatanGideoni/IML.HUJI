@@ -55,6 +55,7 @@ class LDA(BaseEstimator):
         self.mu_ = pd.DataFrame(X).groupby(y).mean().loc[self.classes_].values
 
         self.cov = np.cov(X)
+        self._cov_inv = np.linalg.inv(self.cov)
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
