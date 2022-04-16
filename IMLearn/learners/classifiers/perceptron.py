@@ -81,14 +81,14 @@ class Perceptron(BaseEstimator):
         N_SAMPLES = X.shape[0]
 
         for _ in range(self.max_iter_):
-            for sample_ind in np.random.shuffle(range(N_SAMPLES)):
+            for sample_ind in np.random.permutation(range(N_SAMPLES)):
                 if self._predict(X[sample_ind]) != y[sample_ind]:
                     self.coefs_ += y[sample_ind] * self.__transform(X[sample_ind])
+
+                    self.fitted_ = True
+                    self.callback_(self, X[sample_ind], y[sample_ind])
+
                     break
-
-                self.fitted_ = True
-
-                self.callback_(self, X[sample_ind], y[sample_ind])
             else:
                 return
 
