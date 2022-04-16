@@ -3,7 +3,6 @@ from typing import Tuple
 
 import plotly.graph_objects as go
 
-from IMLearn.learners.classifiers import GaussianNaiveBayes
 from utils import *
 
 
@@ -40,9 +39,7 @@ def run_perceptron():
     for n, f in [("Linearly Separable", "linearly_separable.npy"),
                  ("Linearly Inseparable", "linearly_inseparable.npy")]:
         # Load dataset
-        data, response = load_dataset('../datasets/gaussian1.npy')
-
-        gaussian_n_bayes = GaussianNaiveBayes().fit(data, response)
+        raise NotImplementedError()
 
         # Fit Perceptron and record loss in each fit iteration
         losses = []
