@@ -1,8 +1,11 @@
 from __future__ import annotations
+
 from typing import Callable
 from typing import NoReturn
-from ...base import BaseEstimator
+
 import numpy as np
+
+from ...base import BaseEstimator
 
 
 def default_callback(fit: Perceptron, x: np.ndarray, y: int):
@@ -31,6 +34,7 @@ class Perceptron(BaseEstimator):
             A callable to be called after each update of the model while fitting to given data
             Callable function should receive as input a Perceptron instance, current sample and current response
     """
+
     def __init__(self,
                  include_intercept: bool = True,
                  max_iter: int = 1000,
@@ -73,7 +77,20 @@ class Perceptron(BaseEstimator):
         -----
         Fits model with or without an intercept depending on value of `self.fit_intercept_`
         """
-        raise NotImplementedError()
+        self.coefs_ = np.zeros(X.shape[1] + self.include_intercept_)
+        N_SAMPLES = X.shape[0]
+
+        for _ in range(self.max_iter_):
+            for sample_ind in np.random.shuffle(range(N_SAMPLES)):
+                if self._predict(X[sample_ind]) != y[sample_ind]:
+                    self.coefs_ += y[sample_ind] * self.__transform(X[sample_ind])
+                    break
+
+                self.fitted_ = True
+
+                self.callback_(self, X[sample_ind], y[sample_ind])
+            else:
+                return
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -89,7 +106,7 @@ class Perceptron(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        raise NotImplementedError()
+        return np.sign(self.__transform(X) @ self.coefs_)
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -109,4 +126,22 @@ class Perceptron(BaseEstimator):
             Performance under missclassification loss function
         """
         from ...metrics import misclassification_error
-        raise NotImplementedError()
+        return misclassification_error(self.predict(X), y)
+
+    def __transform(self, array: np.ndarray) -> np.ndarray:
+        """
+        Pad with ones if include_intercept_ is set to True.
+
+        Parameters
+        ----------
+        array: np.ndarray
+            Array to pad
+
+        Returns
+        -------
+        Padded array
+        """
+        pad_dims = (self.include_intercept_, 0)
+        if len(array.shape) > 1:
+            pad_dims = ((0, 0), pad_dims)
+        return np.pad(array, pad_dims, 'constant', constant_values=1)
