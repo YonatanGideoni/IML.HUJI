@@ -3,8 +3,11 @@ from math import atan2, pi
 from typing import Tuple
 
 import matplotlib.pyplot as plt
+# from IMLearn.learners.classifiers import Perceptron, GaussianNaiveBayes
+from sklearn.naive_bayes import GaussianNB
 
-from IMLearn.learners.classifiers import Perceptron
+from IMLearn import BaseEstimator
+from IMLearn.learners.classifiers import LDA
 from utils import *
 
 
@@ -88,35 +91,58 @@ def get_ellipse(mu: np.ndarray, cov: np.ndarray):
     return go.Scatter(x=mu[0] + xs, y=mu[1] + ys, mode="lines", marker_color="black")
 
 
+def plot_classifier_res(data: np.ndarray, response: np.ndarray, classifier: BaseEstimator, axis: plt.axis,
+                        dataset_name: str, classifier_name: str):
+    COLOURS = np.array(['m', 'r', 'darkgreen'])
+    MARKERS = np.array(['o', 'D', 's'])
+
+    predicted_data_labels = classifier.predict(data)
+
+    for pred_class, c in enumerate(COLOURS):
+        for true_class, m in enumerate(MARKERS):
+            rel_data_inds = (response == true_class) & (predicted_data_labels == pred_class)
+            axis.scatter(data[rel_data_inds, 0], data[rel_data_inds, 1], c=c, marker=m,
+                         label=f'Class={true_class}, Prediction={pred_class}')
+
+    plt.legend(bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left",
+               mode="expand", borderaxespad=0, ncol=3)
+
+
 def compare_gaussian_classifiers():
     """
     Fit both Gaussian Naive Bayes and LDA classifiers on both gaussians1 and gaussians2 datasets
     """
-    for f in ["gaussian1.npy", "gaussian2.npy"]:
+    for filename in ["gaussian1.npy", "gaussian2.npy"]:
         # Load dataset
-        raise NotImplementedError()
+        data, response = load_dataset(os.path.join('../datasets', filename))
 
         # Fit models and predict over training set
-        raise NotImplementedError()
+        gaussian_n_b = GaussianNB().fit(data, response)
+        linear_disc_analysis = LDA().fit(data, response)
 
         # Plot a figure with two suplots, showing the Gaussian Naive Bayes predictions on the left and LDA predictions
         # on the right. Plot title should specify dataset used and subplot titles should specify algorithm and accuracy
         # Create subplots
-        raise NotImplementedError()
+        fig, axs = plt.subplots(nrows=1, ncols=2, sharey=True)
+        fig.subplots_adjust(wspace=0)
+
+        plot_classifier_res(data, response, gaussian_n_b, axs[0], filename.split('.')[0], 'Gaussian Naive Bayes')
+        plot_classifier_res(data, response, linear_disc_analysis, axs[1], filename.split('.')[0], 'LDA')
 
         # Add traces for data-points setting symbols and colors
-        raise NotImplementedError()
+        # raise NotImplementedError()
 
         # Add `X` dots specifying fitted Gaussians' means
-        raise NotImplementedError()
+        # raise NotImplementedError()
 
         # Add ellipses depicting the covariances of the fitted Gaussians
-        raise NotImplementedError()
+        # raise NotImplementedError()
 
 
 if __name__ == '__main__':
     np.random.seed(0)
-    run_perceptron()
-    # compare_gaussian_classifiers()
+    # TODO - uncomment stuff
+    # run_perceptron()
+    compare_gaussian_classifiers()
 
     plt.show()
