@@ -4,6 +4,7 @@ from typing import Tuple
 
 import matplotlib.pyplot as plt
 # from IMLearn.learners.classifiers import Perceptron, GaussianNaiveBayes
+from matplotlib.lines import Line2D
 from sklearn.naive_bayes import GaussianNB
 
 from IMLearn import BaseEstimator
@@ -92,20 +93,13 @@ def get_ellipse(mu: np.ndarray, cov: np.ndarray):
 
 
 def plot_classifier_res(data: np.ndarray, response: np.ndarray, classifier: BaseEstimator, axis: plt.axis,
-                        dataset_name: str, classifier_name: str):
-    COLOURS = np.array(['m', 'r', 'darkgreen'])
-    MARKERS = np.array(['o', 'D', 's'])
-
+                        dataset_name: str, classifier_name: str, colours: list, markers: list):
     predicted_data_labels = classifier.predict(data)
 
-    for pred_class, c in enumerate(COLOURS):
-        for true_class, m in enumerate(MARKERS):
+    for pred_class, c in enumerate(colours):
+        for true_class, m in enumerate(markers):
             rel_data_inds = (response == true_class) & (predicted_data_labels == pred_class)
-            axis.scatter(data[rel_data_inds, 0], data[rel_data_inds, 1], c=c, marker=m,
-                         label=f'Class={true_class}, Prediction={pred_class}')
-
-    plt.legend(bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left",
-               mode="expand", borderaxespad=0, ncol=3)
+            axis.scatter(data[rel_data_inds, 0], data[rel_data_inds, 1], c=c, marker=m)
 
 
 def compare_gaussian_classifiers():
@@ -126,11 +120,19 @@ def compare_gaussian_classifiers():
         fig, axs = plt.subplots(nrows=1, ncols=2, sharey=True)
         fig.subplots_adjust(wspace=0)
 
-        plot_classifier_res(data, response, gaussian_n_b, axs[0], filename.split('.')[0], 'Gaussian Naive Bayes')
-        plot_classifier_res(data, response, linear_disc_analysis, axs[1], filename.split('.')[0], 'LDA')
+        COLOURS = np.array(['m', 'r', 'darkgreen'])
+        MARKERS = np.array(['o', 'D', 's'])
 
-        # Add traces for data-points setting symbols and colors
-        # raise NotImplementedError()
+        plot_classifier_res(data, response, gaussian_n_b, axs[0], filename.split('.')[0], 'Gaussian Naive Bayes',
+                            COLOURS, MARKERS)
+        plot_classifier_res(data, response, linear_disc_analysis, axs[1], filename.split('.')[0], 'LDA', COLOURS,
+                            MARKERS)
+
+        legend_content = [Line2D([], [], color=c, marker=m, linestyle='None',
+                                 label=f'Class={true_class}, Prediction={pred_class}')
+                          for true_class, m in enumerate(MARKERS)
+                          for pred_class, c in enumerate(COLOURS)]
+        plt.legend(handles=legend_content, bbox_to_anchor=(-1, -.02, 1, 0.2), loc="lower left", ncol=3)
 
         # Add `X` dots specifying fitted Gaussians' means
         # raise NotImplementedError()
