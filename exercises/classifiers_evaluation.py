@@ -3,12 +3,10 @@ from math import atan2, pi
 from typing import Tuple
 
 import matplotlib.pyplot as plt
-# from IMLearn.learners.classifiers import Perceptron, GaussianNaiveBayes
 from matplotlib.lines import Line2D
-from sklearn.naive_bayes import GaussianNB
 
 from IMLearn import BaseEstimator
-from IMLearn.learners.classifiers import LDA
+from IMLearn.learners.classifiers import Perceptron, GaussianNaiveBayes, LDA
 from utils import *
 
 
@@ -81,7 +79,7 @@ def get_ellipse(mu: np.ndarray, cov: np.ndarray):
 
     Returns
     -------
-        scatter: A plotly trace object of the ellipse
+        scatter: x,y coordinates of an ellipse
     """
     l1, l2 = tuple(np.linalg.eigvalsh(cov)[::-1])
     theta = atan2(l1 - cov[0, 0], cov[0, 1]) if cov[0, 1] != 0 else (np.pi / 2 if cov[0, 0] < cov[1, 1] else 0)
@@ -89,17 +87,26 @@ def get_ellipse(mu: np.ndarray, cov: np.ndarray):
     xs = (l1 * np.cos(theta) * np.cos(t)) - (l2 * np.sin(theta) * np.sin(t))
     ys = (l1 * np.sin(theta) * np.cos(t)) + (l2 * np.cos(theta) * np.sin(t))
 
-    return go.Scatter(x=mu[0] + xs, y=mu[1] + ys, mode="lines", marker_color="black")
+    return mu[0] + xs, mu[1] + ys
 
 
 def plot_classifier_res(data: np.ndarray, response: np.ndarray, classifier: BaseEstimator, axis: plt.axis,
-                        dataset_name: str, classifier_name: str, colours: list, markers: list):
+                        dataset_name: str, classifier_name: str, colours: list, markers: list, X_SIZE=100):
     predicted_data_labels = classifier.predict(data)
 
     for pred_class, c in enumerate(colours):
+        gaussian_mu = classifier.mu_[pred_class]
+        axis.scatter(*gaussian_mu, marker='X', color='k', s=X_SIZE, zorder=np.inf)
+
+        cov_mat = classifier.cov_ if classifier_name == 'LDA' else np.diag(classifier.vars_[pred_class])
+        axis.plot(*get_ellipse(gaussian_mu, cov_mat), color='k', linewidth=3)
+
         for true_class, m in enumerate(markers):
             rel_data_inds = (response == true_class) & (predicted_data_labels == pred_class)
             axis.scatter(data[rel_data_inds, 0], data[rel_data_inds, 1], c=c, marker=m)
+
+    axis.set_title(classifier_name)
+    plt.suptitle(f'Classifiers results for {dataset_name} dataset', fontsize=16)
 
 
 def compare_gaussian_classifiers():
@@ -111,7 +118,7 @@ def compare_gaussian_classifiers():
         data, response = load_dataset(os.path.join('../datasets', filename))
 
         # Fit models and predict over training set
-        gaussian_n_b = GaussianNB().fit(data, response)
+        gaussian_n_b = GaussianNaiveBayes().fit(data, response)
         linear_disc_analysis = LDA().fit(data, response)
 
         # Plot a figure with two suplots, showing the Gaussian Naive Bayes predictions on the left and LDA predictions
@@ -133,12 +140,6 @@ def compare_gaussian_classifiers():
                           for true_class, m in enumerate(MARKERS)
                           for pred_class, c in enumerate(COLOURS)]
         plt.legend(handles=legend_content, bbox_to_anchor=(-1, -.02, 1, 0.2), loc="lower left", ncol=3)
-
-        # Add `X` dots specifying fitted Gaussians' means
-        # raise NotImplementedError()
-
-        # Add ellipses depicting the covariances of the fitted Gaussians
-        # raise NotImplementedError()
 
 
 if __name__ == '__main__':
