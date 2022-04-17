@@ -105,7 +105,7 @@ def plot_classifier_res(data: np.ndarray, response: np.ndarray, classifier: Base
             rel_data_inds = (response == true_class) & (predicted_data_labels == pred_class)
             axis.scatter(data[rel_data_inds, 0], data[rel_data_inds, 1], c=c, marker=m)
 
-    axis.set_title(classifier_name)
+    axis.set_title(f'{classifier_name}, error={classifier.loss(data, response):.2f}')
     plt.suptitle(f'Classifiers results for {dataset_name} dataset', fontsize=16)
 
 
