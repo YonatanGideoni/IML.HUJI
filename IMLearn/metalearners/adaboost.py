@@ -123,7 +123,7 @@ class AdaBoost(BaseEstimator):
             Predicted responses of given samples
         """
         learners_predict = np.array([model.predict(X) for model in self.models_[:T]])
-        avg_predict = (learners_predict.transpose() * self.weights_[:T]).transpose().mean(axis=0)
+        avg_predict = np.average(learners_predict, axis=0, weights=self.weights_[:T])
 
         return np.sign(avg_predict)
 
