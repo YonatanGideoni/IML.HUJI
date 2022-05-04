@@ -117,8 +117,8 @@ class DecisionStump(BaseEstimator):
         optim_threshold_ind = cumul_result.argmax() if sign == -1 else cumul_result.argmin()
         optim_threshold = labelled_features.feature.iloc[optim_threshold_ind:optim_threshold_ind + 1].mean()
 
-        pred_sign = sign * (2 * (labelled_features.values >= optim_threshold) - 1)
-        thresh_err = ((labelled_features.label != pred_sign) * abs(labels)).sum()
+        pred_sign = sign * (2 * (labelled_features.feature >= optim_threshold) - 1)
+        thresh_err = ((np.sign(labelled_features.label) != pred_sign) * abs(labelled_features.label)).sum()
 
         return optim_threshold, thresh_err
 

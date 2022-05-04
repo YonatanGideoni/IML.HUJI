@@ -51,8 +51,6 @@ class AdaBoost(BaseEstimator):
         y : ndarray of shape (n_samples, )
             Responses of input data to fit to
         """
-        # TODO - fix
-
         n_samples = X.shape[0]
         self.D_ = np.ones(n_samples) / n_samples
 
