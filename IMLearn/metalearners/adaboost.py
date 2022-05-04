@@ -2,6 +2,7 @@ from typing import Callable, NoReturn
 
 import numpy as np
 
+from ..metrics import misclassification_error
 from ...base import BaseEstimator
 
 
@@ -81,7 +82,7 @@ class AdaBoost(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        raise NotImplementedError()
+        return self.partial_predict(X, len(self.models_))
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -100,7 +101,7 @@ class AdaBoost(BaseEstimator):
         loss : float
             Performance under missclassification loss function
         """
-        raise NotImplementedError()
+        return self.partial_loss(X, y, len(self.models_))
 
     def partial_predict(self, X: np.ndarray, T: int) -> np.ndarray:
         """
@@ -119,7 +120,10 @@ class AdaBoost(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        raise NotImplementedError()
+        learners_predict = np.array([model.predict(X) for model in self.models_[:T]])
+        avg_predict = (learners_predict * self.weights_.transpose()).sum(axis=0)
+
+        return np.sign(avg_predict)
 
     def partial_loss(self, X: np.ndarray, y: np.ndarray, T: int) -> float:
         """
@@ -141,4 +145,6 @@ class AdaBoost(BaseEstimator):
         loss : float
             Performance under missclassification loss function
         """
-        raise NotImplementedError()
+        pred_res = self.partial_predict(X, T)
+
+        return misclassification_error(y, pred_res)
