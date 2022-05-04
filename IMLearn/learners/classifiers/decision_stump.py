@@ -1,8 +1,12 @@
 from __future__ import annotations
+
 from typing import Tuple, NoReturn
-from ...base import BaseEstimator
+
 import numpy as np
-from itertools import product
+import pandas as pd
+
+from ...base import BaseEstimator
+from ...metrics import misclassification_error
 
 
 class DecisionStump(BaseEstimator):
@@ -20,6 +24,7 @@ class DecisionStump(BaseEstimator):
     self.sign_: int
         The label to predict for samples where the value of the j'th feature is about the threshold
     """
+
     def __init__(self) -> DecisionStump:
         """
         Instantiate a Decision stump classifier
@@ -95,7 +100,14 @@ class DecisionStump(BaseEstimator):
         For every tested threshold, values strictly below threshold are predicted as `-sign` whereas values
         which equal to or above the threshold are predicted as `sign`
         """
-        raise NotImplementedError()
+        labelled_features = pd.DataFrame({'feature': values, 'label': sign}).sort_values(by='feature')
+        optim_threshold_ind = labelled_features.label.cumsum().argmin()
+        optim_threshold = labelled_features.feature.iloc[optim_threshold_ind:optim_threshold_ind + 1].mean()
+
+        pred_sign = 2 * (labelled_features.values > optim_threshold) - 1
+        thresh_err = misclassification_error(labelled_features.label, pred_sign)
+
+        return optim_threshold, thresh_err
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
