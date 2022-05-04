@@ -1,10 +1,10 @@
-import numpy as np
 from typing import Tuple
-from IMLearn.learners.metalearners.adaboost import AdaBoost
+
+from matplotlib import pyplot as plt
+
 from IMLearn.learners.classifiers import DecisionStump
+from IMLearn.metalearners.adaboost import AdaBoost
 from utils import *
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
 
 def generate_data(n: int, noise_ratio: float) -> Tuple[np.ndarray, np.ndarray]:
@@ -42,7 +42,18 @@ def fit_and_evaluate_adaboost(noise, n_learners=250, train_size=5000, test_size=
     (train_X, train_y), (test_X, test_y) = generate_data(train_size, noise), generate_data(test_size, noise)
 
     # Question 1: Train- and test errors of AdaBoost in noiseless case
-    raise NotImplementedError()
+    boosted_learner = AdaBoost(DecisionStump, n_learners).fit(train_X, train_y)
+
+    diff_n_learners_train_err = [boosted_learner.partial_loss(train_X, train_y, i) for i in range(1, n_learners)]
+    diff_n_learners_test_err = [boosted_learner.partial_loss(test_X, test_y, i) for i in range(1, n_learners)]
+
+    plt.figure()
+    plt.plot(diff_n_learners_train_err, label='Train', c='r', linestyle='dashed')
+    plt.plot(diff_n_learners_test_err, label='Test', c='g')
+
+    plt.title('Train and test error for different number of learners', fontsize=16)
+    plt.legend()
+    return
 
     # Question 2: Plotting decision surfaces
     T = [5, 50, 100, 250]
@@ -58,4 +69,6 @@ def fit_and_evaluate_adaboost(noise, n_learners=250, train_size=5000, test_size=
 
 if __name__ == '__main__':
     np.random.seed(0)
-    raise NotImplementedError()
+    fit_and_evaluate_adaboost(noise=0)
+
+    plt.show()
