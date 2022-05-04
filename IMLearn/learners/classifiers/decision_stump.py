@@ -44,7 +44,17 @@ class DecisionStump(BaseEstimator):
         y : ndarray of shape (n_samples, )
             Responses of input data to fit to
         """
-        raise NotImplementedError()
+        min_loss = np.inf
+        for feature_ind in range(X.shape[1]):
+            for sign in [-1, 1]:
+                rel_feature = X[:, feature_ind]
+                optim_thresh, thresh_err = self._find_threshold(rel_feature, y, sign)
+
+                if thresh_err < min_loss:
+                    min_loss = thresh_err
+                    self.sign_ = self.sign_
+                    self.j_ = feature_ind
+                    self.threshold_ = optim_thresh
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -68,7 +78,9 @@ class DecisionStump(BaseEstimator):
         Feature values strictly below threshold are predicted as `-sign` whereas values which equal
         to or above the threshold are predicted as `sign`
         """
-        raise NotImplementedError()
+        rel_features = X[:, self.j_]
+
+        return (2 * (rel_features >= self.threshold_) - 1) * self.sign_
 
     def _find_threshold(self, values: np.ndarray, labels: np.ndarray, sign: int) -> Tuple[float, float]:
         """
@@ -101,10 +113,11 @@ class DecisionStump(BaseEstimator):
         which equal to or above the threshold are predicted as `sign`
         """
         labelled_features = pd.DataFrame({'feature': values, 'label': sign}).sort_values(by='feature')
-        optim_threshold_ind = labelled_features.label.cumsum().argmin()
+        cumul_result = labelled_features.label.cumsum()
+        optim_threshold_ind = cumul_result.argmax() if sign == -1 else cumul_result.argmin()
         optim_threshold = labelled_features.feature.iloc[optim_threshold_ind:optim_threshold_ind + 1].mean()
 
-        pred_sign = 2 * (labelled_features.values > optim_threshold) - 1
+        pred_sign = sign * (2 * (labelled_features.values >= optim_threshold) - 1)
         thresh_err = misclassification_error(labelled_features.label, pred_sign)
 
         return optim_threshold, thresh_err
@@ -126,4 +139,4 @@ class DecisionStump(BaseEstimator):
         loss : float
             Performance under missclassification loss function
         """
-        raise NotImplementedError()
+        return misclassification_error(y, self.predict(X))
