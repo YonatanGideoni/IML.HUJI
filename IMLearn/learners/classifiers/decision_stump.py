@@ -112,13 +112,13 @@ class DecisionStump(BaseEstimator):
         For every tested threshold, values strictly below threshold are predicted as `-sign` whereas values
         which equal to or above the threshold are predicted as `sign`
         """
-        labelled_features = pd.DataFrame({'feature': values, 'label': sign}).sort_values(by='feature')
+        labelled_features = pd.DataFrame({'feature': values, 'label': np.sign(labels)}).sort_values(by='feature')
         cumul_result = labelled_features.label.cumsum()
         optim_threshold_ind = cumul_result.argmax() if sign == -1 else cumul_result.argmin()
         optim_threshold = labelled_features.feature.iloc[optim_threshold_ind:optim_threshold_ind + 1].mean()
 
         pred_sign = sign * (2 * (labelled_features.values >= optim_threshold) - 1)
-        thresh_err = misclassification_error(labelled_features.label, pred_sign)
+        thresh_err = ((labelled_features.label != pred_sign) * abs(labels)).sum()
 
         return optim_threshold, thresh_err
 
@@ -139,4 +139,4 @@ class DecisionStump(BaseEstimator):
         loss : float
             Performance under missclassification loss function
         """
-        return misclassification_error(y, self.predict(X))
+        return misclassification_error(np.sign(y), self.predict(X))

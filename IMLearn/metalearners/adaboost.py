@@ -1,6 +1,8 @@
-import numpy as np
-from ...base import BaseEstimator
 from typing import Callable, NoReturn
+
+import numpy as np
+
+from ...base import BaseEstimator
 
 
 class AdaBoost(BaseEstimator):
@@ -48,7 +50,22 @@ class AdaBoost(BaseEstimator):
         y : ndarray of shape (n_samples, )
             Responses of input data to fit to
         """
-        raise NotImplementedError()
+        n_samples = X.shape[0]
+        self.D_ = np.ones(n_samples) / n_samples
+
+        self.models_ = [None] * self.iterations_
+        self.weights_ = np.zeros(self.iterations_)
+        for i in range(self.iterations_):
+            learner = self.wl_().fit(X, y * self.D_)
+
+            learner_pred = learner.predict(X)
+            weighted_err = ((learner_pred != y) * self.D_).sum()
+            learner_weight = 0.5 * np.log(1 / weighted_err - 1)
+            self.D_ *= np.exp(-y * learner_weight * learner_pred)
+            self.D_ /= self.D_.sum()
+
+            self.models_[i] = learner
+            self.weights_[i] = learner_weight
 
     def _predict(self, X):
         """
