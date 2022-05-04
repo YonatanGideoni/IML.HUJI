@@ -2,8 +2,8 @@ from typing import Callable, NoReturn
 
 import numpy as np
 
+from ..base import BaseEstimator
 from ..metrics import misclassification_error
-from ...base import BaseEstimator
 
 
 class AdaBoost(BaseEstimator):
@@ -51,6 +51,8 @@ class AdaBoost(BaseEstimator):
         y : ndarray of shape (n_samples, )
             Responses of input data to fit to
         """
+        # TODO - fix
+
         n_samples = X.shape[0]
         self.D_ = np.ones(n_samples) / n_samples
 
@@ -121,7 +123,7 @@ class AdaBoost(BaseEstimator):
             Predicted responses of given samples
         """
         learners_predict = np.array([model.predict(X) for model in self.models_[:T]])
-        avg_predict = (learners_predict * self.weights_.transpose()).sum(axis=0)
+        avg_predict = (learners_predict.transpose() * self.weights_[:T]).transpose().mean(axis=0)
 
         return np.sign(avg_predict)
 
