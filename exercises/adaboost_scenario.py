@@ -135,12 +135,13 @@ def fit_and_evaluate_adaboost(noise, n_learners=250, train_size=5000, test_size=
 
     # Question 4: Decision surface with weighted samples
     weights = boosted_learner.D_
-    weights *= 200 / weights.max()
+    weights *= 20 / weights.max()
     plot_ensemble_decision_surface(boosted_learner, n_learners, train_X, train_y, lims, weights)
 
 
 if __name__ == '__main__':
     np.random.seed(0)
     fit_and_evaluate_adaboost(noise=0)
+    fit_and_evaluate_adaboost(noise=0.4)
 
     plt.show()
