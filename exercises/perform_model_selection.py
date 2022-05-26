@@ -31,6 +31,15 @@ def cross_validate_model(estimator: BaseEstimator, param_space: np.ndarray, trai
     return train_score, val_score
 
 
+def cross_val_plot(params: np.ndarray, train_score: np.ndarray, val_score: np.ndarray):
+    plt.scatter(params, train_score, label='Train', marker='d', c='m')
+    plt.scatter(params, val_score, label='Validation', marker='p', c='c')
+
+    plt.legend()
+    plt.grid()
+    plt.ylabel('Score', fontsize=12)
+
+
 def select_polynomial_degree(n_samples: int = 100, noise: float = 5):
     """
     Simulate data from a polynomial model and use cross-validation to select the best fitting degree
@@ -72,13 +81,9 @@ def select_polynomial_degree(n_samples: int = 100, noise: float = 5):
     train_score, val_score = cross_validate_model(PolynomialFitting, poly_degs, train_X.x, train_y)
 
     plt.figure('Q2')
-    plt.scatter(poly_degs, train_score, label='Train', marker='d', c='m')
-    plt.scatter(poly_degs, val_score, label='Validation', marker='p', c='c')
+    cross_val_plot(poly_degs, train_score, val_score)
 
-    plt.legend()
-    plt.grid()
     plt.xlabel('k', fontsize=12)
-    plt.ylabel('Score', fontsize=12)
     plt.title('Average train/validation score for polynomials of different degrees', fontsize=14)
 
     # Question 3 - Using best value of k, fit a k-degree polynomial model and report test error
@@ -102,11 +107,28 @@ def select_regularization_parameter(n_samples: int = 50, n_evaluations: int = 50
         Number of regularization parameter values to evaluate for each of the algorithms
     """
     # Question 6 - Load diabetes dataset and split into training and testing portions
-    raise NotImplementedError()
+    X, y = datasets.load_diabetes(as_frame=True, return_X_y=True)
+    train_X, train_y, test_X, test_y = split_train_test(X, y, train_proportion=n_samples / len(X))
 
     # Question 7 - Perform CV for different values of the regularization parameter for Ridge and Lasso regressions
-    raise NotImplementedError()
+    ridge_lambdas = np.linspace(0, 0.3, n_evaluations)
+    lasso_lambdas = np.linspace(0, 2.5, n_evaluations)
 
+    ridge_train_score, ridge_val_score = cross_validate_model(RidgeRegression, ridge_lambdas, train_X, train_y)
+    lasso_train_score, lasso_val_score = cross_validate_model(Lasso, lasso_lambdas, train_X, train_y)
+
+    plt.figure('Q7-ridge')
+    cross_val_plot(ridge_lambdas, ridge_train_score, ridge_val_score)
+
+    plt.xlabel('$\lambda$', fontsize=12)
+    plt.title('Average train/validation score for RidgeRegression for different $\lambda$', fontsize=14)
+
+    plt.figure('Q7-lasso')
+    cross_val_plot(lasso_lambdas, lasso_train_score, lasso_val_score)
+
+    plt.xlabel('$\lambda$', fontsize=12)
+    plt.title('Average train/validation score for Lasso for different $\lambda$', fontsize=14)
+    return
     # Question 8 - Compare best Ridge model, best Lasso model and Least Squares model
     raise NotImplementedError()
 
