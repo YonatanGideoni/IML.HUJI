@@ -65,7 +65,7 @@ class RidgeRegression(BaseEstimator):
         """
         X = self.__get_design_mat(X)
 
-        u, s, v = np.linalg.svd(X)
+        u, s, v = np.linalg.svd(X, full_matrices=False)
 
         ridge_s = s / (s ** 2 + self.lam_)
 
