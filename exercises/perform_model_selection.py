@@ -128,14 +128,25 @@ def select_regularization_parameter(n_samples: int = 50, n_evaluations: int = 50
 
     plt.xlabel('$\lambda$', fontsize=12)
     plt.title('Average train/validation score for Lasso for different $\lambda$', fontsize=14)
-    return
+
     # Question 8 - Compare best Ridge model, best Lasso model and Least Squares model
-    raise NotImplementedError()
+    opt_ridge_lambda = ridge_lambdas[np.argmin(ridge_val_score)]
+    opt_lasso_lambda = lasso_lambdas[np.argmin(lasso_val_score)]
+
+    opt_ridge = RidgeRegression(opt_ridge_lambda).fit(train_X, train_y)
+    opt_lasso = Lasso(opt_lasso_lambda).fit(train_X, train_y)
+    lin_regress = LinearRegression().fit(train_X, train_y)
+
+    print(f'Ridge test error: {opt_ridge.loss(test_X, test_y):.2f}')
+    print(f'Lasso test error: {mean_square_error(opt_lasso.predict(test_X), test_y):.2f}')
+    print(f'LS test error:    {lin_regress.loss(test_X, test_y):.2f}')
 
 
 if __name__ == '__main__':
     np.random.seed(0)
-    # select_polynomial_degree(noise=10, n_samples=1500)
+    select_polynomial_degree()
+    select_polynomial_degree(noise=0)
+    select_polynomial_degree(noise=10, n_samples=1500)
 
     select_regularization_parameter()
 
