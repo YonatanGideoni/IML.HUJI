@@ -1,8 +1,13 @@
 from __future__ import annotations
+
+from typing import Tuple
+
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn import datasets
+
+from IMLearn import BaseEstimator
 from IMLearn.metrics import mean_square_error
 from IMLearn.utils import split_train_test
 from IMLearn.model_selection import cross_validate
@@ -12,6 +17,18 @@ from sklearn.linear_model import Lasso
 from utils import *
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+
+
+def cross_validate_model(estimator: BaseEstimator, param_space: np.ndarray, train_X: pd.DataFrame,
+                         train_y: pd.Series) -> Tuple[np.ndarray, np.ndarray]:
+    param_space_size = len(param_space)
+    train_score = np.zeros(param_space_size)
+    val_score = np.zeros(param_space_size)
+    for i, param in enumerate(param_space):
+        model = estimator(param)
+        train_score[i], val_score[i] = cross_validate(model, train_X, train_y, mean_square_error)
+
+    return train_score, val_score
 
 
 def select_polynomial_degree(n_samples: int = 100, noise: float = 5):
@@ -52,11 +69,7 @@ def select_polynomial_degree(n_samples: int = 100, noise: float = 5):
     # Question 2 - Perform CV for polynomial fitting with degrees 0,1,...,10
     MAX_POLY_DEG = 10
     poly_degs = np.arange(MAX_POLY_DEG + 1)
-    train_score = np.zeros(MAX_POLY_DEG + 1)
-    val_score = np.zeros(MAX_POLY_DEG + 1)
-    for deg in poly_degs:
-        model = PolynomialFitting(deg)
-        train_score[deg], val_score[deg] = cross_validate(model, train_X.x, train_y, mean_square_error)
+    train_score, val_score = cross_validate_model(PolynomialFitting, poly_degs, train_X.x, train_y)
 
     plt.figure('Q2')
     plt.scatter(poly_degs, train_score, label='Train', marker='d', c='m')
