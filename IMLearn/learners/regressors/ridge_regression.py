@@ -63,7 +63,13 @@ class RidgeRegression(BaseEstimator):
         -----
         Fits model with or without an intercept depending on value of `self.include_intercept_`
         """
-        raise NotImplementedError()
+        X = self.__get_design_mat(X)
+
+        u, s, v = np.linalg.svd(X)
+
+        ridge_s = s / (s ** 2 + self.lam_)
+
+        self.coefs_ = v.T @ np.diag(ridge_s) @ u.T @ y
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
