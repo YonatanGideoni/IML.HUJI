@@ -1,7 +1,12 @@
 from __future__ import annotations
-from typing import NoReturn
-from ...base import BaseEstimator
+
+from typing import NoReturn, Union
+
 import numpy as np
+import pandas as pd
+
+from ...base import BaseEstimator
+from ...metrics import mean_square_error
 
 
 class RidgeRegression(BaseEstimator):
@@ -32,7 +37,6 @@ class RidgeRegression(BaseEstimator):
             Coefficients vector fitted by linear regression. To be set in
             `LinearRegression.fit` function.
         """
-
 
         """
         Initialize a ridge regression model
@@ -75,7 +79,7 @@ class RidgeRegression(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        raise NotImplementedError()
+        return self.__get_design_mat(X) @ self.coefs_
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -94,4 +98,11 @@ class RidgeRegression(BaseEstimator):
         loss : float
             Performance under MSE loss function
         """
-        raise NotImplementedError()
+        return mean_square_error(self.predict(X), y)
+
+    def __get_design_mat(self, X: Union[pd.DataFrame, np.ndarray]) -> np.ndarray:
+        X = X.copy()
+        if self.include_intercept_:
+            X['dummy_intercept_col'] = 1
+
+        return X.values if isinstance(X, pd.DataFrame) else X
