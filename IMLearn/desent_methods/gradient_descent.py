@@ -133,10 +133,10 @@ class GradientDescent:
         n_iter = 0
         while n_iter < self.max_iter_:
             delta = np.linalg.norm(weights - prev_weights)
-            step_size = self.learning_rate_.lr_step(n_iter)
+            step_size = self.learning_rate_.lr_step(t=n_iter)
             grad = f.compute_jacobian()
 
-            if delta > self.tol_:
+            if delta < self.tol_:
                 break
 
             new_weights = weights - step_size * grad
@@ -144,7 +144,7 @@ class GradientDescent:
             weights = new_weights
             f.weights = weights
 
-            score = f.compute_output(X, y)
+            score = f.compute_output(X=X, y=y)
             if self.out_type_ == BEST and score < best_score:
                 best_weights = weights
                 best_score = score
