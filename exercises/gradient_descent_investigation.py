@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from typing import Tuple, List, Callable, Type
@@ -85,8 +86,8 @@ def get_gd_state_recorder_callback() -> Tuple[Callable[[], None], List[np.ndarra
     return callback, values, recorded_weights
 
 
-def plot_module_descent_path(eta: float, learning_rate: type(BaseLR), module: type(BaseModule), mod_name: str,
-                             init_weights: np.ndarray):
+def plot_module_results(eta: float, learning_rate: type(BaseLR), module: type(BaseModule), mod_name: str,
+                        init_weights: np.ndarray):
     learning_rate = learning_rate(eta)
 
     callback, vals, weights = get_gd_state_recorder_callback()
@@ -97,12 +98,27 @@ def plot_module_descent_path(eta: float, learning_rate: type(BaseLR), module: ty
 
     plot_descent_path(module, np.array(weights), title=f'for {mod_name} for LR={eta:.3f}').show()
 
+    plt.figure()
+    plt.plot(vals)
+
+    plt.xlim(0)
+    plt.title(f'Convergence rate for {mod_name} for $\eta$={eta:.3f}', fontsize=16)
+    plt.xlabel('Iteration', fontsize=13)
+    plt.ylabel('Loss value', fontsize=13)
+
+    plt.semilogy()
+    plt.grid()
+
+    print(f'Min loss for {mod_name}={min(vals):.2e}, eta={eta}')
+
+    plt.savefig(f'{mod_name}_{eta:.3f}.png')
+
 
 def compare_fixed_learning_rates(init: np.ndarray = np.array([np.sqrt(2), np.e / 3]),
                                  etas: Tuple[float] = (1, .1, .01, .001)):
     for eta in etas:
-        plot_module_descent_path(eta, FixedLR, L2, 'L2', init)
-        plot_module_descent_path(eta, FixedLR, L1, 'L1', init)
+        plot_module_results(eta, FixedLR, L2, 'L2', init)
+        plot_module_results(eta, FixedLR, L1, 'L1', init)
 
 
 def compare_exponential_decay_rates(init: np.ndarray = np.array([np.sqrt(2), np.e / 3]),
@@ -167,3 +183,5 @@ if __name__ == '__main__':
     compare_fixed_learning_rates()
     # compare_exponential_decay_rates()
     # fit_logistic_regression()
+
+    plt.show()
