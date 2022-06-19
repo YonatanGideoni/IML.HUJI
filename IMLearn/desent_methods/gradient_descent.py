@@ -5,7 +5,10 @@ import numpy as np
 from IMLearn.base import BaseModule, BaseLR
 from .learning_rate import FixedLR
 
-OUTPUT_VECTOR_TYPE = ["last", "best", "average"]
+BEST = 'best'
+LAST = 'last'
+AVG = 'average'
+OUTPUT_VECTOR_TYPE = [LAST, BEST, AVG]
 
 
 def default_callback(**kwargs) -> NoReturn:
@@ -39,6 +42,7 @@ class GradientDescent:
         Callable function receives as input any argument relevant for the current GD iteration. Arguments
         are specified in the `GradientDescent.fit` function
     """
+
     def __init__(self,
                  learning_rate: BaseLR = FixedLR(1e-3),
                  tol: float = 1e-5,
@@ -119,4 +123,44 @@ class GradientDescent:
                 Euclidean norm of w^(t)-w^(t-1)
 
         """
-        raise NotImplementedError()
+        weights, prev_weights = f.weights, np.zeros_like(f.weights)
+
+        sum_weights = weights
+
+        best_weights = np.zeros_like(f.weights)
+        best_score = np.inf
+
+        n_iter = 0
+        while n_iter < self.max_iter_:
+            delta = np.linalg.norm(weights - prev_weights)
+            step_size = self.learning_rate_.lr_step(n_iter)
+            grad = f.compute_jacobian()
+
+            if delta > self.tol_:
+                break
+
+            new_weights = weights - step_size * grad
+            prev_weights = weights
+            weights = new_weights
+            f.weights = weights
+
+            score = f.compute_output(X, y)
+            if self.out_type_ == BEST and score < best_score:
+                best_weights = weights
+                best_score = score
+
+            if self.out_type_ == AVG:
+                sum_weights += weights
+
+            self.callback_(solver=self, val=score, weights=weights, grad=grad, t=n_iter, eta=step_size, delta=delta)
+
+            n_iter += 1
+
+        if self.out_type_ == BEST:
+            return best_weights
+        if self.out_type_ == LAST:
+            return weights
+        if self.out_type_ == AVG:
+            return sum_weights / n_iter
+
+        raise NotImplementedError
