@@ -86,52 +86,65 @@ def get_gd_state_recorder_callback() -> Tuple[Callable[[], None], List[np.ndarra
     return callback, values, recorded_weights
 
 
-def plot_module_results(eta: float, learning_rate: type(BaseLR), module: type(BaseModule), mod_name: str,
-                        init_weights: np.ndarray):
-    learning_rate = learning_rate(eta)
-
+def plot_module_results(eta: float, learning_rate: BaseLR, module: type(BaseModule), mod_name: str,
+                        init_weights: np.ndarray, plot: bool = True):
     callback, vals, weights = get_gd_state_recorder_callback()
 
     mod = module(init_weights)
 
     GradientDescent(learning_rate, callback=callback).fit(mod, X=None, y=None)
 
-    plot_descent_path(module, np.array(weights), title=f'for {mod_name} for LR={eta:.3f}').show()
+    if plot:
+        plot_descent_path(module, np.array(weights), title=f'for {mod_name} for LR={eta:.3f}').show()
 
-    plt.figure()
-    plt.plot(vals)
+        plt.figure()
+        plt.plot(vals)
 
-    plt.xlim(0)
-    plt.title(f'Convergence rate for {mod_name} for $\eta$={eta:.3f}', fontsize=16)
-    plt.xlabel('Iteration', fontsize=13)
-    plt.ylabel('Loss value', fontsize=13)
+        plt.xlim(0)
+        plt.title(f'Convergence rate for {mod_name} for $\eta$={eta:.3f}', fontsize=16)
+        plt.xlabel('Iteration', fontsize=13)
+        plt.ylabel('Loss value', fontsize=13)
 
-    plt.semilogy()
-    plt.grid()
+        plt.semilogy()
+        plt.grid()
+
+        plt.savefig(f'{mod_name}_{eta:.3f}.png')
 
     print(f'Min loss for {mod_name}={min(vals):.2e}, eta={eta}')
 
-    plt.savefig(f'{mod_name}_{eta:.3f}.png')
+    return vals
 
 
 def compare_fixed_learning_rates(init: np.ndarray = np.array([np.sqrt(2), np.e / 3]),
                                  etas: Tuple[float] = (1, .1, .01, .001)):
     for eta in etas:
-        plot_module_results(eta, FixedLR, L2, 'L2', init)
-        plot_module_results(eta, FixedLR, L1, 'L1', init)
+        plot_module_results(eta, FixedLR(eta), L2, 'L2', init)
+        plot_module_results(eta, FixedLR(eta), L1, 'L1', init)
 
 
 def compare_exponential_decay_rates(init: np.ndarray = np.array([np.sqrt(2), np.e / 3]),
                                     eta: float = .1,
                                     gammas: Tuple[float] = (.9, .95, .99, 1)):
     # Optimize the L1 objective using different decay-rate values of the exponentially decaying learning rate
-    raise NotImplementedError()
+    l1_scores_per_iter = [plot_module_results(eta, ExponentialLR(eta, gamma), L1, 'L1', init, plot=False) for gamma in
+                          gammas]
 
     # Plot algorithm's convergence for the different values of gamma
-    raise NotImplementedError()
+    linestyles = ['solid', 'dotted', 'dashed', '-.']
+    for score, gamma, linestyle in zip(l1_scores_per_iter, gammas, linestyles):
+        plt.plot(score, linestyle=linestyle, label=f'$\gamma$={gamma}')
+
+    plt.legend()
+    plt.grid()
+    plt.xlim(0)
+    plt.semilogy()
+    plt.xlabel('Iteration', fontsize=13)
+    plt.ylabel('Loss', fontsize=13)
+    plt.title('Loss per iteration for different decay rates', fontsize=16)
 
     # Plot descent path for gamma=0.95
-    raise NotImplementedError()
+    plot_module_results(eta, ExponentialLR(eta, gammas[1]), L1, 'L1', init)
+    plot_module_results(eta, ExponentialLR(eta, gammas[1]), L2, 'L2', init)
 
 
 def load_data(path: str = "../datasets/SAheart.data", train_portion: float = .8) -> \
@@ -180,8 +193,8 @@ def fit_logistic_regression():
 
 if __name__ == '__main__':
     np.random.seed(0)
-    compare_fixed_learning_rates()
-    # compare_exponential_decay_rates()
+    # compare_fixed_learning_rates()
+    compare_exponential_decay_rates()
     # fit_logistic_regression()
 
     plt.show()
