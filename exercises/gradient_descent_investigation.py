@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from typing import Tuple, List, Callable, Type
 
-from IMLearn import BaseModule
+from IMLearn import BaseModule, BaseLR
 from IMLearn.desent_methods import GradientDescent, FixedLR, ExponentialLR
 from IMLearn.desent_methods.modules import L1, L2
 from IMLearn.learners.classifiers.logistic_regression import LogisticRegression
@@ -46,12 +46,14 @@ def plot_descent_path(module: Type[BaseModule],
     fig = plot_descent_path(IMLearn.desent_methods.modules.L1, np.ndarray([[1,1],[0,0]]))
     fig.show()
     """
+
     def predict_(w):
         return np.array([module(weights=wi).compute_output() for wi in w])
 
     from utils import decision_surface
     return go.Figure([decision_surface(predict_, xrange=xrange, yrange=yrange, density=70, showscale=False),
-                      go.Scatter(x=descent_path[:, 0], y=descent_path[:, 1], mode="markers+lines", marker_color="black")],
+                      go.Scatter(x=descent_path[:, 0], y=descent_path[:, 1], mode="markers+lines",
+                                 marker_color="black")],
                      layout=go.Layout(xaxis=dict(range=xrange),
                                       yaxis=dict(range=yrange),
                                       title=f"GD Descent Path {title}"))
@@ -73,12 +75,34 @@ def get_gd_state_recorder_callback() -> Tuple[Callable[[], None], List[np.ndarra
     weights: List[np.ndarray]
         Recorded parameters
     """
-    raise NotImplementedError()
+    values = []
+    recorded_weights = []
+
+    def callback(val, weights, **kwargs):
+        values.append(val)
+        recorded_weights.append(weights)
+
+    return callback, values, recorded_weights
+
+
+def plot_module_descent_path(eta: float, learning_rate: type(BaseLR), module: type(BaseModule), mod_name: str,
+                             init_weights: np.ndarray):
+    learning_rate = learning_rate(eta)
+
+    callback, vals, weights = get_gd_state_recorder_callback()
+
+    mod = module(init_weights)
+
+    GradientDescent(learning_rate, callback=callback).fit(mod, X=None, y=None)
+
+    plot_descent_path(module, np.array(weights), title=f'for {mod_name} for LR={eta:.3f}').show()
 
 
 def compare_fixed_learning_rates(init: np.ndarray = np.array([np.sqrt(2), np.e / 3]),
                                  etas: Tuple[float] = (1, .1, .01, .001)):
-    raise NotImplementedError()
+    for eta in etas:
+        plot_module_descent_path(eta, FixedLR, L2, 'L2', init)
+        plot_module_descent_path(eta, FixedLR, L1, 'L1', init)
 
 
 def compare_exponential_decay_rates(init: np.ndarray = np.array([np.sqrt(2), np.e / 3]),
@@ -141,5 +165,5 @@ def fit_logistic_regression():
 if __name__ == '__main__':
     np.random.seed(0)
     compare_fixed_learning_rates()
-    compare_exponential_decay_rates()
-    fit_logistic_regression()
+    # compare_exponential_decay_rates()
+    # fit_logistic_regression()
