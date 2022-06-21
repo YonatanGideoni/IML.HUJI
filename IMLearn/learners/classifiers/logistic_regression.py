@@ -1,8 +1,11 @@
 from typing import NoReturn
 import numpy as np
+import pandas as pd
+
 from IMLearn import BaseEstimator
 from IMLearn.desent_methods import GradientDescent
 from IMLearn.desent_methods.modules import LogisticModule, RegularizedModule, L1, L2
+from IMLearn.metrics import misclassification_error
 
 
 class LogisticRegression(BaseEstimator):
@@ -88,7 +91,18 @@ class LogisticRegression(BaseEstimator):
         Fits model using specified `self.optimizer_` passed when instantiating class and includes an intercept
         if specified by `self.include_intercept_
         """
-        raise NotImplementedError()
+        init_weights = np.random.randn(X.shape[0] + self.include_intercept_) / X.shape[0] ** 0.5
+
+        if self.penalty_ == 'none':
+            module = LogisticModule(init_weights)
+        else:
+            if self.penalty_ == 'l1':
+                reg_mod = L1()
+            else:
+                reg_mod = L2()
+            module = RegularizedModule(LogisticModule(), reg_mod, self.lam_, init_weights, self.include_intercept_)
+
+        self.coefs_ = self.solver_.fit(module, X=X, y=y)
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -104,7 +118,7 @@ class LogisticRegression(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        raise NotImplementedError()
+        return (self.predict(X) >> self.alpha_).astype(int)
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
         """
@@ -120,7 +134,8 @@ class LogisticRegression(BaseEstimator):
         probabilities: ndarray of shape (n_samples,)
             Probability of each sample being classified as `1` according to the fitted model
         """
-        raise NotImplementedError()
+        X = self.__add_intercept_to_design_mat(X)
+        return 1 / (1 + np.exp(-X @ self.coefs_))
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -139,4 +154,11 @@ class LogisticRegression(BaseEstimator):
         loss : float
             Performance under misclassification error
         """
-        raise NotImplementedError()
+        return misclassification_error(self.predict(X), y)
+
+    def __add_intercept_to_design_mat(self, X: np.ndarray) -> np.ndarray:
+        X = pd.DataFrame(X)
+        if self.include_intercept_:
+            X['-1'] = 1
+
+        return X.values
