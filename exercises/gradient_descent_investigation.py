@@ -189,10 +189,10 @@ def fit_logistic_regression():
     solver = GradientDescent(FixedLR(1e-4), max_iter=20000)
     log_reg = LogisticRegression(solver=solver).fit(X_train, y_train)
 
-    test_pred = log_reg.predict_proba(X_test)
-    fpr, tpr, alpha_vals = sklearn.metrics.roc_curve(y_test, test_pred)
+    train_pred = log_reg.predict_proba(X_train)
+    fpr, tpr, alpha_vals = sklearn.metrics.roc_curve(y_train, train_pred)
 
-    RocCurveDisplay.from_predictions(y_test, test_pred)
+    RocCurveDisplay.from_predictions(y_train, train_pred)
 
     plt.xlim(0, 1)
     plt.ylim(0, 1)
@@ -200,6 +200,9 @@ def fit_logistic_regression():
 
     opt_alpha = alpha_vals[np.argmax(tpr - fpr)]
     print(f'Alpha:{opt_alpha:.3f}')
+
+    log_reg.alpha_ = opt_alpha
+    print(f'Test error: {log_reg.loss(X_test, y_test):.2f}')
 
     # Plotting convergence rate of logistic regression over SA heart disease data
     # raise NotImplementedError()

@@ -119,7 +119,7 @@ class LogisticRegression(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        return (self.predict(X) >> self.alpha_).astype(int)
+        return (self.predict_proba(X) > self.alpha_).astype(int)
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
         """
