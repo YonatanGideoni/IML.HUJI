@@ -134,7 +134,7 @@ class GradientDescent:
         while n_iter < self.max_iter_:
             delta = np.linalg.norm(weights - prev_weights)
             step_size = self.learning_rate_.lr_step(t=n_iter)
-            grad = f.compute_jacobian()
+            grad = f.compute_jacobian(X=X, y=y)
 
             if delta < self.tol_:
                 break
