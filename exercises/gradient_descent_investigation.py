@@ -10,6 +10,8 @@ from IMLearn import BaseModule, BaseLR
 from IMLearn.desent_methods import GradientDescent, FixedLR, ExponentialLR
 from IMLearn.desent_methods.modules import L1, L2
 from IMLearn.learners.classifiers.logistic_regression import LogisticRegression
+from IMLearn.metrics import misclassification_error
+from IMLearn.model_selection import cross_validate
 from IMLearn.utils import split_train_test
 
 import plotly.graph_objects as go
@@ -204,12 +206,21 @@ def fit_logistic_regression():
     log_reg.alpha_ = opt_alpha
     print(f'Test error: {log_reg.loss(X_test, y_test):.2f}')
 
-    # Plotting convergence rate of logistic regression over SA heart disease data
-    # raise NotImplementedError()
-
     # Fitting l1- and l2-regularized logistic regression models, using cross-validation to specify values
     # of regularization parameter
-    # raise NotImplementedError()
+    lambda_vals = (0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1)
+
+    best_lam = 0
+    best_score = np.inf
+    for lam_val in lambda_vals:
+        regularized_logreg = LogisticRegression(solver=solver, lam=lam_val, penalty='l1')
+
+        _, val_score = cross_validate(regularized_logreg, X_train, y_train, misclassification_error)
+        if val_score < best_score:
+            best_score = val_score
+            best_lam = lam_val
+
+    print(f'Opt lambda: {best_lam}')
 
 
 if __name__ == '__main__':

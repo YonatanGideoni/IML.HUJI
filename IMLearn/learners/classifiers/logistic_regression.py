@@ -102,7 +102,7 @@ class LogisticRegression(BaseEstimator):
                 reg_mod = L2()
             module = RegularizedModule(LogisticModule(), reg_mod, self.lam_, init_weights, self.include_intercept_)
 
-        X = self.__add_intercept_to_design_mat(X)
+        X = self._add_intercept_to_design_mat(X)
         self.coefs_ = self.solver_.fit(module, X=X, y=y)
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
@@ -135,7 +135,7 @@ class LogisticRegression(BaseEstimator):
         probabilities: ndarray of shape (n_samples,)
             Probability of each sample being classified as `1` according to the fitted model
         """
-        X = self.__add_intercept_to_design_mat(X)
+        X = self._add_intercept_to_design_mat(X)
         return 1 / (1 + np.exp(-X @ self.coefs_))
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
@@ -157,8 +157,8 @@ class LogisticRegression(BaseEstimator):
         """
         return misclassification_error(self.predict(X), y)
 
-    def __add_intercept_to_design_mat(self, X: np.ndarray) -> np.ndarray:
-        X = pd.DataFrame(X)
+    def _add_intercept_to_design_mat(self, X: np.ndarray) -> np.ndarray:
+        X = pd.DataFrame(X).copy()
         if self.include_intercept_:
             X['-1'] = 1
 
