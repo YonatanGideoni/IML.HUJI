@@ -3,6 +3,9 @@ import numpy as np
 import pandas as pd
 from typing import Tuple, List, Callable, Type
 
+import sklearn.metrics
+from sklearn.metrics import RocCurveDisplay
+
 from IMLearn import BaseModule, BaseLR
 from IMLearn.desent_methods import GradientDescent, FixedLR, ExponentialLR
 from IMLearn.desent_methods.modules import L1, L2
@@ -183,18 +186,33 @@ def fit_logistic_regression():
     # Load and split SA Heard Disease dataset
     X_train, y_train, X_test, y_test = load_data()
 
+    solver = GradientDescent(FixedLR(1e-4), max_iter=20000)
+    log_reg = LogisticRegression(solver=solver).fit(X_train, y_train)
+
+    test_pred = log_reg.predict_proba(X_test)
+    fpr, tpr, alpha_vals = sklearn.metrics.roc_curve(y_test, test_pred)
+
+    RocCurveDisplay.from_predictions(y_test, test_pred)
+
+    plt.xlim(0, 1)
+    plt.ylim(0, 1)
+    plt.title('ROC curve for logistic regression', fontsize=15)
+
+    opt_alpha = alpha_vals[np.argmax(tpr - fpr)]
+    print(f'Alpha:{opt_alpha:.3f}')
+
     # Plotting convergence rate of logistic regression over SA heart disease data
-    raise NotImplementedError()
+    # raise NotImplementedError()
 
     # Fitting l1- and l2-regularized logistic regression models, using cross-validation to specify values
     # of regularization parameter
-    raise NotImplementedError()
+    # raise NotImplementedError()
 
 
 if __name__ == '__main__':
     np.random.seed(0)
     # compare_fixed_learning_rates()
-    compare_exponential_decay_rates()
-    # fit_logistic_regression()
+    # compare_exponential_decay_rates()
+    fit_logistic_regression()
 
     plt.show()
