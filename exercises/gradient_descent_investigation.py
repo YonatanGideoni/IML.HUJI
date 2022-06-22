@@ -184,6 +184,27 @@ def load_data(path: str = "../datasets/SAheart.data", train_portion: float = .8)
     return split_train_test(df.drop(['chd', 'row.names'], axis=1), df.chd, train_portion)
 
 
+def fit_reg_logistic_regression(X_train: np.ndarray, y_train: np.ndarray, X_test: np.ndarray, y_test: np.ndarray,
+                                solver: GradientDescent, penalty: str = 'l1'):
+    lambda_vals = (0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1)
+
+    opt_lam = 0
+    best_score = np.inf
+    for lam_val in lambda_vals:
+        regularized_logreg = LogisticRegression(solver=solver, lam=lam_val, penalty=penalty)
+
+        _, val_score = cross_validate(regularized_logreg, X_train, y_train, misclassification_error)
+        if val_score < best_score:
+            best_score = val_score
+            opt_lam = lam_val
+
+    print(f'Opt lambda: {opt_lam}')
+
+    opt_logreg = LogisticRegression(solver=solver, lam=opt_lam, penalty=penalty).fit(X_train, y_train)
+    test_err = opt_logreg.loss(X_test, y_test)
+    print(f'Test error: {test_err:.3f}')
+
+
 def fit_logistic_regression():
     # Load and split SA Heard Disease dataset
     X_train, y_train, X_test, y_test = load_data()
@@ -208,19 +229,8 @@ def fit_logistic_regression():
 
     # Fitting l1- and l2-regularized logistic regression models, using cross-validation to specify values
     # of regularization parameter
-    lambda_vals = (0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1)
-
-    best_lam = 0
-    best_score = np.inf
-    for lam_val in lambda_vals:
-        regularized_logreg = LogisticRegression(solver=solver, lam=lam_val, penalty='l1')
-
-        _, val_score = cross_validate(regularized_logreg, X_train, y_train, misclassification_error)
-        if val_score < best_score:
-            best_score = val_score
-            best_lam = lam_val
-
-    print(f'Opt lambda: {best_lam}')
+    fit_reg_logistic_regression(X_train, y_train, X_test, y_test, solver)
+    fit_reg_logistic_regression(X_train, y_train, X_test, y_test, solver, penalty='l2')
 
 
 if __name__ == '__main__':
