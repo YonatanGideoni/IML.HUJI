@@ -91,4 +91,4 @@ def softmax(X: np.ndarray) -> np.ndarray:
         Softmax(x) for every sample x in given data X
     """
     exp_X = np.exp(X)
-    return -exp_X / exp_X.sum(axis=1)
+    return exp_X / exp_X.sum(axis=1)
